@@ -20,7 +20,7 @@ def printHello():
     A test function
     :return:
     """
-    print "Hello World!"
+    print ("Hello World!")
 
 
 
@@ -52,18 +52,18 @@ def searchGranule(limit=100,  **kwargs):
     :param kwargs: search parameters
     :return: list of results (<Instance of Result>)
     """
-    print "======== Waiting for response ========"
+    print ("======== Waiting for response ========")
     metaUrl = granuleMetaUrl
     for k, v in kwargs.items():
         metaUrl += "&{}={}".format(k, v)
-    print metaUrl
+    
     metaResult = [requests.get(metaUrl.format(pagenum), headers=headers).content
                   for pagenum in xrange(1, (limit - 1) / 50 + 2)]
 
     # The first can be the error msgs
     root = ElementTree.XML(metaResult[0])
     if root.tag == "errors":
-        print " |- Error: " + str([ch.text for ch in root._children])
+        print (" |- Error: " + str([ch.text for ch in root._children]))
         return
 
     metaResult = [ref for res in metaResult
@@ -79,7 +79,7 @@ def searchCollection(limit=100, **kwargs):
     :param kwargs: search parameters
     :return: list of results (<Instance of Result>)
     """
-    print "======== Waiting for response ========"
+    print ("======== Waiting for response ========")
     metaUrl = collectionMetaUrl
     for k, v in kwargs.items():
         metaUrl += "&{}={}".format(k, v)
@@ -91,7 +91,7 @@ def searchCollection(limit=100, **kwargs):
         metaResult = [ref for res in metaResult
                   for ref in json.loads(res.content)['feed']['entry']]
     except KeyError:
-        print  " |- Error: " + str((json.loads(metaResult[0].content))["errors"])
+        print ( " |- Error: " + str((json.loads(metaResult[0].content))["errors"]))
         return
     locationResult = _searchResult(collectionUrl, limit=limit, **kwargs)
     #print locationResult
