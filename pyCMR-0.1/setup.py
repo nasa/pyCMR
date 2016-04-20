@@ -17,7 +17,7 @@
 import os
 from distutils.core import setup
 
-from cmr import __version__
+from pyCMR import __version__
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(this_dir, 'README.rst')) as f:
