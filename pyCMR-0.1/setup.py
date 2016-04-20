@@ -26,7 +26,7 @@ with open(os.path.join(this_dir, 'README.rst')) as f:
 setup(
     name='pyCMR',
     version=__version__,
-    py_modules=['pyCMR','Result'],
+    py_modules=['pyCMR','Result','xmlParser'],
     author='Manil Maskey',
     author_email='manil.maskey@nasa.gov',
     description='client API to search and download data using CMR',
