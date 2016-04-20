@@ -6,5 +6,5 @@ Run:
 	python setup.py install
 
 ## Documentation
-* [CMR Client Library Documentation](../pyCMR-0.1/doc.html)
+* [CMR Client Library Documentation](http://htmlpreview.github.io/?https://github.com/ghrcdaac/cmr/blob/master/pyCMR-0.1/doc.html)
 * [CMR Search Documentation](https://cmr.sit.earthdata.nasa.gov/search/site/search_api_docs.html)
