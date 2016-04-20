@@ -37,7 +37,7 @@ def _searchResult(url, limit, **kwargs):
     for k, v in kwargs.items():
         url += "&{}={}".format(k, v)
     result = [requests.get(url.format(pagenum), headers=headers).content
-              for pagenum in range(1, int((limit - 1) / 50) + 2)]
+              for pagenum in xrange(1, (limit - 1) / 50 + 2)]
     # for res in result:
     #     for ref in re.findall("<reference>(.*?)</reference>", res):
     #         yield ref
@@ -58,7 +58,7 @@ def searchGranule(limit=100,  **kwargs):
         metaUrl += "&{}={}".format(k, v)
     
     metaResult = [requests.get(metaUrl.format(pagenum), headers=headers).content
-                  for pagenum in range(1, int((limit - 1) / 50) + 2)]
+                  for pagenum in xrange(1, (limit - 1) / 50 + 2)]
 
     # The first can be the error msgs
     root = ElementTree.XML(metaResult[0])
@@ -85,7 +85,7 @@ def searchCollection(limit=100, **kwargs):
         metaUrl += "&{}={}".format(k, v)
 
     metaResult = [requests.get(metaUrl.format(pagenum), headers=headers)
-                  for pagenum in range(1, int((limit - 1) / 50) + 2)]
+                  for pagenum in xrange(1, (limit - 1) / 50 + 2)]
 
     try:
         metaResult = [ref for res in metaResult
