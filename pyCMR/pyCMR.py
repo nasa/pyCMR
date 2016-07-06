@@ -27,7 +27,7 @@ class CMR():
         """
 
         if not os.access(configFilePath,
-                         os.R_OK | os.W_OK):  # check if the config file has read and write permissions set
+                         os.R_OK | os.W_OK):  # check if the config file has the reading and writing permissions set
             print("[CONFIGFILE ERROR] the config file can't be open for reading/writing ")
             exit(0)
 
@@ -35,14 +35,13 @@ class CMR():
         self.config.read(configFilePath)
         self.configFilePath = configFilePath
 
-        self._granuleUrl = self.config.get("search", "GRANULE_URL")
+        self.granuleUrl = self.config.get("search", "GRANULE_URL")
         self._granuleMetaUrl = self.config.get("search", "granule_meta_url")
         self._collectionUrl = self.config.get("search", "collection_url")
         self._collectionMetaUrl = self.config.get("search", "collection_meta_url")
 
         self._INGEST_URL = self.config.get("ingest", "ingest_url")  # Base URL for ingesting to CMR
-        self._INGEST_VALIDATION_URL = self.config.get("ingest",
-                                                 "ingest_validation_url")  # Base URL to validate the ingestion
+
 
         self._CONTENT_TYPE = self.config.get("ingest", "content_type")
 
@@ -53,8 +52,8 @@ class CMR():
 
         self._headers_client = {"Client-Id": "servir"}
         self._REQUEST_TOKEN_URL=self.config.get("request", "request_token_url")
-        self._GET_COLL_SN= self.config.get("search", "collection_by_shortname")
-        self._GET_GRA_UR=self.config.get("search", "granule_by_ur")
+
+
 
 
         try:
@@ -153,7 +152,7 @@ class CMR():
         purpose: check if the token has been expired
         :return: True if the token has been expired; False otherwise.
         """
-        url = self._INGEST_VALIDATION_URL + self._PROVIDER + "/collections/LarcDatasetId"
+        url = self._INGEST_URL + self._PROVIDER + "/collections/LarcDatasetId"
         putGranule = requests.put(url=url, headers=self._headers)
         if (len(putGranule.text.split('<error>')) > 1):  # if there is an error in the request
             temp = "Token " + self._ECHO_TOKEN + " does not exist"
@@ -186,6 +185,18 @@ class CMR():
             return tree.find("Collection").find("ShortName").text
         except:
             return("Could not find <ShortName> tag")
+
+    def _getGranuleUR(self, pathToXMLFile):
+        """
+            Purpose : a private function to parse the xml file and returns teh datasetShortName
+            :param pathToXMLFile:
+            :return:  the datasetShortName
+            """
+        tree = ET.parse(pathToXMLFile)
+        try:
+            return tree.find("GranuleUR").text
+        except:
+            return ("Could not find <GranuleUR> tag")
 
     def ingestCollection(self, pathToXMLFile):
         """
@@ -236,7 +247,7 @@ class CMR():
         :param pathToXMLFile:
         :return: the ingest granules request if it is successfully validated
         """
-        url = self._INGEST_URL + self._PROVIDER + "/granules/" + self._getShortName(pathToXMLFile=pathToXMLFile)
+        url = self._INGEST_URL + self._PROVIDER + "/granules/" + self._getGranuleUR(pathToXMLFile=pathToXMLFile)
         data = self._getXMLData(pathToXMLFile=pathToXMLFile)
         validateGranuleRequest = self._validateGranule(data=data,
                                                        datasetShortName=self._getShortName(pathToXMLFile=pathToXMLFile))
@@ -297,16 +308,16 @@ class CMR():
 
 
 
-    def deleteGranule(self, granuleNative_id):
+    def deleteGranule(self, granule_ur):
         """
 
-        :param granuleNative_id: is typically dataset short name
+        :param granule_ur: The granule name
         :return: the content of the deletion request
         """
         if self.isTokenExpired():
             self._generateNewToken()
 
-        url = self._INGEST_URL + self._PROVIDER + "/granules/" + granuleNative_id
+        url = self._INGEST_URL + self._PROVIDER + "/granules/" + granule_ur
         removeGranule=requests.delete(url=url, headers=self._headers)
 
         return removeGranule.content
@@ -344,28 +355,8 @@ class CMR():
         self._headers = {'Content-type': self._CONTENT_TYPE,
                          'Echo-Token': self._ECHO_TOKEN}
 
-    def getCollectionByShortName(self, shortName):
-        """
-        verify if the ingestion was successful
 
-        :param dataset_id:
-        :return:
-        """
-        url = self._GET_COLL_SN+shortName
-        req = requests.get(url=url)
-        return req.content
 
-    def getGranuleByUR(self,
-                               granule_ur):
-        """
-            verify if the ingestion was successful
-
-            :param granuleNative_id: typically the ds_short_name
-            :return:
-            """
-        url = self._GET_GRA_UR+granule_ur
-        req = requests.get(url=url)
-        return req.content
 
 
 

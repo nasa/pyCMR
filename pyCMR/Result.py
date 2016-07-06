@@ -52,7 +52,8 @@ class Granule(Result):
 
         # Retrieve downloadable url
         try:
-            self._location = self['Granule']['OnlineAccessURLs']['OnlineAccessURL']['URL']
+
+            self._location = self['Granule']['OnlineAccessURLs']['OnlineAccessURL'][0]['URL']
             self._downloadname = self._location.split("/")[-1]
         except KeyError:
             self._location = None
