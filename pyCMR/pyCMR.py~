@@ -247,11 +247,10 @@ class CMR():
         :param pathToXMLFile:
         :return: the ingest granules request if it is successfully validated
         """
-        granule_ur= self._getGranuleUR(pathToXMLFile=pathToXMLFile)
-        url = self._INGEST_URL + self._PROVIDER + "/granules/" + granule_ur
+        url = self._INGEST_URL + self._PROVIDER + "/granules/" + self._getGranuleUR(pathToXMLFile=pathToXMLFile)
         data = self._getXMLData(pathToXMLFile=pathToXMLFile)
         validateGranuleRequest = self._validateGranule(data=data,
-                                                       granule_ur=granule_ur)
+                                                       datasetShortName=self._getShortName(pathToXMLFile=pathToXMLFile))
         if validateGranuleRequest.ok:
             if self.isTokenExpired():
                 self._generateNewToken()
@@ -367,16 +366,6 @@ class CMR():
 
 
 
-if __name__=="__main__":
-    cmr=CMR("configFile.cfg")
-    #print cmr.searchCollection(short_name="A2_RainOcn_NRT")
-    #print cmr.getGranuleUR("granuleupdated.xml")
-    #print cmr.searchGranule(granule_ur="UR_1.he10")
-    #print cmr.ingestCollection("collection.xml")
-    #print cmr.ingestGranule("granule.xml")
-    print cmr.ingestGranule("granuleupdated.xml")
-    #print cmr.deleteGranule("UR_1.he11")
-    #print cmr.deleteCollection("NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
 
 
 
