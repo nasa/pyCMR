@@ -1,4 +1,3 @@
-import socket
 import xml.etree.ElementTree as ET
 import json
 import sys
@@ -386,14 +385,12 @@ class CMR():
 
     def _getIPAddress(self):
         """
-        Grep the ip address of the machine running the program
-        (used to request echo token )
-        :return: the address ip
+        Get the public IP address of the machine running the program
+        (used to request ECHO token)
+        :return: machine's public IP
         """
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("gmail.com", 80))
-        ip_address = s.getsockname()[0]
-        s.close()
+        response = requests.get('http://httpbin.org/ip')
+        ip_address = json.loads(response.text)['origin']
         return ip_address
 
     def _getXMLData(self, pathToXMLFile):
