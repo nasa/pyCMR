@@ -1,21 +1,5 @@
 from itertools import izip
-def ComaSeperatedToListJson(pathToFile="data_example"):
-    #py=GHRCCatalog("configFile.cfg")
-    fileLines=open(pathToFile)
-    lines=[]
-    listJson=[]
-    for ele in fileLines:
-        if (ele=='\n'):
-            continue
-        ele=ele.replace("=", ",")
-        lines.append(ele)
-    for ele in lines:
-        iterator=iter(ele.split(","))
-        args=dict(izip(iterator,iterator))
-        #post=py.ingestGranule(**args)
-        #print post['status'], post['result']
-        listJson.append(args)
-    return listJson
+
 class XmlListConfig(list):
     """
     Parse the xml as a python list

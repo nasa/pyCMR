@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import json
 import sys
 from Result import *
-from xmlParser import XmlListConfig
+from xmlParser import XmlListConfig, ComaSeperatedToListJson
 import os
 
 
@@ -245,6 +245,23 @@ class CMR():
 
 
 
+
+    def __ingestGranuleData(self, data,granule_ur):
+        validateGranuleRequest = self._validateGranule(data=data,
+                                                       granule_ur=granule_ur)
+        url = self._INGEST_URL + self._PROVIDER + "/granules/" + granule_ur
+
+        if validateGranuleRequest.ok:
+            if self.isTokenExpired():
+                self._generateNewToken()
+            putGranule = self.session_ingest.put(url=url, data=data)
+
+            return {"log": putGranule.content, "status": putGranule.status_code}
+
+        else:
+            return {"log": validateGranuleRequest.content, "status": validateGranuleRequest.status_code}
+
+
     def ingestGranule(self, pathToXMLFile):
         """
         :purpose : ingest granules using cmr rest api
@@ -253,19 +270,52 @@ class CMR():
         """
 
         granule_ur= self._getGranuleUR(pathToXMLFile=pathToXMLFile)
-        url = self._INGEST_URL + self._PROVIDER + "/granules/" + granule_ur
+
         data = self._getXMLData(pathToXMLFile=pathToXMLFile)
-        validateGranuleRequest = self._validateGranule(data=data,
-                                                       granule_ur=granule_ur)
-        if validateGranuleRequest.ok:
-            if self.isTokenExpired():
-                self._generateNewToken()
-            putGranule = self.session_ingest.put(url=url, data=data)
+        return self.__ingestGranuleData(data=data, granule_ur=granule_ur)
 
-            return putGranule.content
 
-        else:
-            return (validateGranuleRequest.content)
+
+
+
+
+    def fromJsonToXML(self, data):
+
+        top = ET.Element("Granule")
+        GranuleUR = ET.SubElement(top, "GranuleUR")
+        GranuleUR.text = data['granule_name']
+        InsertTime = ET.SubElement(top, "InsertTime")
+        InsertTime.text = data['start_date']
+        LastUpdate = ET.SubElement(top, "LastUpdate")
+        LastUpdate.text = data['start_date']
+        Collection = ET.SubElement(top, "Collection")
+        DataSetId=ET.SubElement(Collection, "DataSetId")
+        DataSetId.text = data['ds_short_name']
+        Orderable=ET.SubElement(top, "Orderable")
+        Orderable.text="true"
+        return ET.tostring(top)
+
+
+
+
+    def ingestGranuleTextFile(self, pathToTextFile="/home/marouane/PycharmProjects/cmr-master/dataexample.txt"):
+        listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile)
+        returnList = []
+        args = {}
+        errorCount = 0
+
+        for ele in listargs:
+            xmldata= self.fromJsonToXML(ele)
+            data=self.__ingestGranuleData(data=xmldata, granule_ur=ele['granule_name'])
+            returnList.append(data)
+            if (data['status'] >= 400):
+                errorCount += 1
+            returnList.append(data['log'])
+            # print args
+        return {'logs': returnList,
+                'result': str(len(listargs) - errorCount) + " successful ingestion out of " + str(len(listargs))}
+
+
 
     def _validateCollection(self, data, dataset_id):
         """
@@ -374,9 +424,12 @@ class CMR():
 
 
 if __name__=="__main__":
-    cmr=CMR("/home/marouane/configFile.cfg")
-    #print cmr.ingestCollection("/home/marouane/pyCMR_python2.7/test-collection.xml")
-    print cmr.ingestGranule("/home/marouane/pyCMR_python2.7/test-granule.xml")
+    #cmr=CMR("cmr.cfg")
+    #print cmr.ingestCollection("/home/marouane/PycharmProjects/cmr-master/test-collection.xml")
+    #print cmr.ingestGranuleTextFile("PathToTxtFile.txt)
+
+    #print cmr.searchGranule(GranuleUR="wwllnrt_20151106_daily_v1_lit.raw")
+
     #print cmr.searchGranule(granule_ur="AMSR_2_L2_RainOcean_R00_201508190926_A.he5")
     #print cmr.searchCollection(short_name="A2_RainOcn_NRT")
     #print cmr.getGranuleUR("granuleupdated.xml")
@@ -388,6 +441,7 @@ if __name__=="__main__":
     #print cmr.ingestGranule("/home/marouane/cmr/test-granule.xml")
     #print cmr.deleteGranule("UR_1.he11")
     #print cmr.deleteCollection("NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
+
 
 
 
