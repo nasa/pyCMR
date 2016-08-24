@@ -299,19 +299,25 @@ class CMR():
 
 
     def ingestGranuleTextFile(self, pathToTextFile="/home/marouane/PycharmProjects/cmr-master/dataexample.txt"):
-        listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile)
+"""
+        :purpose : ingest granules using cmr rest api
+        :param pathToTextFile: a comma seperated values text file
+       
+        :return: logs of the requests and the overall successful ingestions
+"""
+        listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile) # convert comma seperated text file into list of json data
         returnList = []
         args = {}
         errorCount = 0
 
-        for ele in listargs:
-            xmldata= self.fromJsonToXML(ele)
-            data=self.__ingestGranuleData(data=xmldata, granule_ur=ele['granule_name'])
+        for ele in listargs: # for each element in list of json data
+            xmldata= self.fromJsonToXML(ele) # convert from json to xml
+            data=self.__ingestGranuleData(data=xmldata, granule_ur=ele['granule_name']) # ingest each granule
             returnList.append(data)
-            if (data['status'] >= 400):
-                errorCount += 1
+            if (data['status'] >= 400): # if there is an error during the ingestion 
+                errorCount += 1 # increment the counter
             returnList.append(data['log'])
-            # print args
+           
         return {'logs': returnList,
                 'result': str(len(listargs) - errorCount) + " successful ingestion out of " + str(len(listargs))}
 
@@ -424,9 +430,9 @@ class CMR():
 
 
 if __name__=="__main__":
-    cmr=CMR("/home/marouane/configFile.cfg")
+    #cmr=CMR("cmr.cfg")
     #print cmr.ingestCollection("/home/marouane/PycharmProjects/cmr-master/test-collection.xml")
-    print cmr.ingestGranuleTextFile()
+    #print cmr.ingestGranuleTextFile("PathToTxtFile.txt)
 
     #print cmr.searchGranule(GranuleUR="wwllnrt_20151106_daily_v1_lit.raw")
 
