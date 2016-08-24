@@ -2,9 +2,11 @@ import socket
 import xml.etree.ElementTree as ET
 import json
 import sys
-from Result import *
+from Result import Collection, Granule
 from xmlParser import XmlListConfig, ComaSeperatedToListJson
 import os
+import re
+import requests
 
 
 req_version = (3, 0)
@@ -423,8 +425,8 @@ class CMR():
 
 
 
-if __name__=="__main__":
-    #cmr=CMR("cmr.cfg")
+# if __name__=="__main__":
+    # cmr=CMR("cmr.cfg")
     #print cmr.ingestCollection("/home/marouane/PycharmProjects/cmr-master/test-collection.xml")
     #print cmr.ingestGranuleTextFile("PathToTxtFile.txt)
 
@@ -441,10 +443,3 @@ if __name__=="__main__":
     #print cmr.ingestGranule("/home/marouane/cmr/test-granule.xml")
     #print cmr.deleteGranule("UR_1.he11")
     #print cmr.deleteCollection("NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
-
-
-
-
-
-
-
