@@ -6,6 +6,7 @@ from xmlParser import XmlListConfig, ComaSeperatedToListJson
 import os
 import re
 import requests
+import copy
 
 
 req_version = (3, 0)
@@ -29,8 +30,8 @@ class CMR():
 
         if not os.access(configFilePath,
                          os.R_OK | os.W_OK):  # check if the config file has the reading and writing permissions set
-            print("[CONFIGFILE ERROR] the config file can't be open for reading/writing ")
-            exit(0)
+            print("[CONFIGFILE ERROR] the config file can't be opened for reading/writing")
+            exit(1)
 
         self.config = ConfigParser()
         self.config.read(configFilePath)
@@ -62,6 +63,7 @@ class CMR():
 
         try:
             self._ECHO_TOKEN = self.config.get("ingest", "echo_token")  # Get the token
+            assert self._ECHO_TOKEN != 'AAAAAA-AAAAA-AAAA-AAAA-AAAAAA'
         except:
             self.config.set('ingest', 'ECHO_TOKEN', self._getEchoToken(self._PASSWORD))
             self.config.write(open(self.configFilePath, 'w'))
@@ -71,14 +73,6 @@ class CMR():
 
         self.session_ingest.headers.update({'Content-type': self._CONTENT_TYPE,
                          'Echo-Token': self._ECHO_TOKEN})
-
-    def printHello(self):
-        """
-        A test function
-        :return:
-        """
-
-        print ("Hello World!")
 
     def _searchResult(self, url, limit, **kwargs):
         """
@@ -139,7 +133,9 @@ class CMR():
         for k, v in kwargs.items():
             metaUrl += "&{}={}".format(k, v)
 
-        metaResult = [self.session_ingest.get(metaUrl.format(pagenum))
+        temp_headers = copy.copy(self.session_ingest.headers)
+        del temp_headers['Content-type']
+        metaResult = [self.session_ingest.get(metaUrl.format(pagenum), headers=temp_headers)
                       for pagenum in xrange(1, (limit - 1) / 50 + 2)]
 
         try:
@@ -148,8 +144,11 @@ class CMR():
         except KeyError:
             print (" |- Error: " + str((json.loads(metaResult[0].content))["errors"]))
             return
+        except ValueError:
+            print("Server responded with status code {}".format(metaResult.status_code))
+            print("At least one of the results cannot be parsed; here's the first:\n{}".format(metaResult[0].content))
+            return
         locationResult = self._searchResult(self._collectionUrl, limit=limit, **kwargs)
-        # print locationResult
 
         return [Collection(m, l) for m, l in zip(metaResult, locationResult)][:limit]
 
