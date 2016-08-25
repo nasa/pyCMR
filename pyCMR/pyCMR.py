@@ -299,15 +299,15 @@ class CMR():
 
 
     def ingestGranuleTextFile(self, pathToTextFile="/home/marouane/PycharmProjects/cmr-master/dataexample.txt"):
-"""
-        :purpose : ingest granules using cmr rest api
+        """:purpose : ingest granules using cmr rest api
         :param pathToTextFile: a comma seperated values text file
-       
+
         :return: logs of the requests and the overall successful ingestions
-"""
+        """
+
+
         listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile) # convert comma seperated text file into list of json data
         returnList = []
-        args = {}
         errorCount = 0
 
         for ele in listargs: # for each element in list of json data
@@ -430,6 +430,7 @@ class CMR():
 
 
 if __name__=="__main__":
+    print("Hello World")
     #cmr=CMR("cmr.cfg")
     #print cmr.ingestCollection("/home/marouane/PycharmProjects/cmr-master/test-collection.xml")
     #print cmr.ingestGranuleTextFile("PathToTxtFile.txt)
