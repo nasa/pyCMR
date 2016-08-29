@@ -288,12 +288,11 @@ class CMR():
         """
         :purpose : ingest granules using cmr rest api
         :param pathToTextFile: a comma seperated values text file
-       
+
         :return: logs of the requests and the overall successful ingestions
         """
         listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile) # convert comma seperated text file into list of json data
         returnList = []
-        args = {}
         errorCount = 0
 
         for ele in listargs: # for each element in list of json data

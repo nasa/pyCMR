@@ -7,7 +7,7 @@ client_id =
 [ingest]
 ingest_url = https://cmr.uat.earthdata.nasa.gov/ingest/providers/
 content_type = application/echo10+xml
-echo_token = A64471C0-2844-ED97-78C2-70384FEFA227
+echo_token = AAAAAA-AAAAA-AAAA-AAAA-AAAAAA
 
 [search]
 search_url = https://cmr.uat.earthdata.nasa.gov/search
@@ -18,4 +18,3 @@ collection_meta_url = %(search_url)s/collections.json?page_size=50&page_num={}
 
 [request]
 request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
-
