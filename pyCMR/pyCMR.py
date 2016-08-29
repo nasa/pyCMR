@@ -39,6 +39,7 @@ class CMR():
         self._PASSWORD = self.config.get("credentials", "password")
         self._CLIENT_ID = self.config.get("credentials", "client_id")
 
+        self._ECHO_TOKEN = self.config.get("ingest", "echo_token")
         self._createSession()
         self._generateNewToken()
         self._CONTENT_TYPE = self.config.get("ingest", "content_type")
@@ -353,16 +354,10 @@ class CMR():
     def _createSession(self):
         ''' Create a new request session for the CMR object '''
         self.session = requests.Session()
-        self.session.headers.update({'Client-Id': self._CLIENT_ID})
-        self.session.hooks = {'response': self._create_new_session_if_error}
-
-    def _create_new_session_if_error(self, response, **kwargs):
-        '''
-        Failing a CMR request causes the system to lock session requests
-        for the next minute or so. Creating a new session will avoid that lag.
-        '''
-        if not response.ok:
-            self._createSession()
+        self.session.headers.update({
+            'Client-Id': self._CLIENT_ID,
+            'Echo-Token': self._ECHO_TOKEN
+        })
 
 
 # if __name__ == "__main__":
