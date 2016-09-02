@@ -39,6 +39,7 @@ class CMR():
         self._PASSWORD = self.config.get("credentials", "password")
         self._CLIENT_ID = self.config.get("credentials", "client_id")
 
+        self._ECHO_TOKEN = self.config.get("ingest", "echo_token")
         self._createSession()
         self._generateNewToken()
         self._CONTENT_TYPE = self.config.get("ingest", "content_type")
@@ -82,7 +83,7 @@ class CMR():
         # The first can be the error msgs
         root = ET.XML(metaResult[0])
         if root.tag == "errors":
-            raise ValueError(" |- Error: " + str([ch.text for ch in root._children]))
+            raise ValueError(str([ch.text for ch in root._children]))
 
         metaResult = [ref for res in metaResult
                       for ref in XmlListConfig(ET.XML(res))[2:]]
@@ -183,11 +184,6 @@ class CMR():
                 self._generateNewToken()
             putCollection = self.session.put(url=url, data=data, headers=self._INGEST_HEADER)  # ingest granules
 
-            if not putCollection.ok:
-                # Failing a PUT causes the CMR to lock session requests for the next minute or so
-                # Creating a new session will avoid that
-                self._createSession()
-
             return putCollection.content
 
         else:
@@ -205,7 +201,7 @@ class CMR():
         if self.isTokenExpired():  # check if the token has been expired
             self._generateNewToken()
         url = self._INGEST_URL + self._PROVIDER + "/collections/" + dataset_id
-        removeCollection = self.session.delete(url, headers=self._INGEST_HEADER)
+        removeCollection = self.session.delete(url)
         return removeCollection.content
 
     def __ingestGranuleData(self, data,granule_ur):
@@ -217,11 +213,6 @@ class CMR():
             if self.isTokenExpired():
                 self._generateNewToken()
             putGranule = self.session.put(url=url, data=data, headers=self._INGEST_HEADER)
-
-            if not putGranule.ok:
-                # Failing a PUT causes the CMR to lock session requests for the next minute or so
-                # Creating a new session will avoid that
-                self._createSession()
 
             return putGranule.content
 
@@ -328,7 +319,7 @@ class CMR():
             self._generateNewToken()
 
         url = self._INGEST_URL + self._PROVIDER + "/granules/" + granule_ur
-        removeGranule = self.session.delete(url=url, headers=self._INGEST_HEADER)
+        removeGranule = self.session.delete(url)
 
         return removeGranule.content
 
@@ -363,7 +354,10 @@ class CMR():
     def _createSession(self):
         ''' Create a new request session for the CMR object '''
         self.session = requests.Session()
-        self.session.headers.update({'Client-Id': self._CLIENT_ID})
+        self.session.headers.update({
+            'Client-Id': self._CLIENT_ID,
+            'Echo-Token': self._ECHO_TOKEN
+        })
 
 
 # if __name__ == "__main__":
