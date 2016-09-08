@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import xml.etree.ElementTree as ET
 try:
     from configparser import ConfigParser
@@ -13,18 +14,38 @@ from Result import Collection, Granule
 from xmlParser import XmlListConfig, ComaSeperatedToListJson
 
 
-class CMR():
-    def __init__(self, configFilePath):
+class CMR(object):
+    def __init__(self, configFilePath=''):
         """
-        :param configFilePath: It is the config file containing the credentials to make CRUD requests to CMR (extention .cfg)
-               Please make sure that this process can read and write to the file (changing the Token key)
+        :param configFilePath: The config file containing the credentials to make CRUD requests to CMR (extention .cfg)
+        These con
         """
-        if not os.access(configFilePath, os.R_OK | os.W_OK):  # check if the config file has the reading and writing permissions set
-            raise IOError("The config file can't be opened for reading/writing")
-
         self.config = ConfigParser()
-        self.config.read(configFilePath)
-        self.configFilePath = configFilePath
+
+        if os.path.isfile(configFilePath) and os.access(configFilePath, os.R_OK | os.W_OK):
+            # Open the config file as normal
+            self.config.read(configFilePath)
+            self.configFilePath = configFilePath
+        elif not os.path.isfile(configFilePath) and \
+            set(['CMR_PROVIDER', 'CMR_USERNAME', 'CMR_PASSWORD', 'CMR_CLIENT_ID']).issubset(set(os.environ.keys())):
+            print("Creating new config file, using information in the `CMR_*` environment variables")
+
+            pycmr_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            example_config_path = os.path.join(pycmr_base_dir, 'cmr.cfg.example')
+            new_config_path = os.path.join(pycmr_base_dir, 'cmr.cfg')
+            shutil.copyfile(example_config_path, new_config_path)
+            configFilePath = new_config_path
+
+            self.config.read(configFilePath)
+            self.configFilePath = configFilePath
+            self.config.set('credentials', 'provider', os.environ['CMR_PROVIDER'])
+            self.config.set('credentials', 'username', os.environ['CMR_USERNAME'])
+            self.config.set('credentials', 'password', os.environ['CMR_PASSWORD'])
+            self.config.set('credentials', 'client_id', os.environ['CMR_CLIENT_ID'])
+            self.config.write(open(self.configFilePath, 'w'))
+            print("Config file created, at {}".format(new_config_path))
+        else:
+            raise IOError("The config file can't be opened for reading/writing")
 
         self._granuleUrl = self.config.get("search", "GRANULE_URL")
         self._granuleMetaUrl = self.config.get("search", "granule_meta_url")
@@ -41,7 +62,8 @@ class CMR():
 
         self._ECHO_TOKEN = self.config.get("ingest", "echo_token")
         self._createSession()
-        self._generateNewToken()
+        if not self.config.get('ingest', 'ECHO_TOKEN'):
+            self._generateNewToken()
         self._CONTENT_TYPE = self.config.get("ingest", "content_type")
         self._INGEST_HEADER = {'Content-type': self._CONTENT_TYPE}
 
@@ -344,7 +366,7 @@ class CMR():
         replacing the expired token by a new one in the config file
         :return:
         """
-        print("Replacing the Echo Tocken ... ")
+        print("Replacing the Echo Token")
         theNewToken = self._getEchoToken()
         self.config.set('ingest', 'ECHO_TOKEN',theNewToken)
         self.config.write(open(self.configFilePath, 'w'))
