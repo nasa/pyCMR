@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from pyCMR.pyCMR import CMR
@@ -9,51 +10,85 @@ class TestCMRIntegration(unittest.TestCase):
     def setUpClass(cls):
         cls.cmr = CMR('cmr.cfg')
 
-    def test_collection_search(self):
+        cls._test_collection_path = os.path.join('.', 'tests', 'fixtures', 'test-collection.xml')
+        cls._test_granule_path = os.path.join('.', 'tests', 'fixtures', 'test-granule.xml')
+        cls._test_collection_name = 'PYCMR TEST COLLECTION'
+        cls._test_granule_name = 'PYCMR_TEST_GRANULE.hd5'
+
+    def collection_search(self):
         results = self.cmr.searchCollection()
         # Make sure that the XML response was actually parsed
         self.assertTrue(isinstance(results[0], Collection))
         self.assertTrue('concept-id' in results[0].keys())
         self.assertTrue('Collection' in results[0].keys())
 
-    def test_granule_search(self):
+    def granule_search(self):
         results = self.cmr.searchGranule()
         self.assertTrue(isinstance(results[0], Granule))
         self.assertTrue('concept-id' in results[0].keys())
         self.assertTrue('Granule' in results[0].keys())
 
-    def test_token_validity(self):
-        pass
+    def collection_ingest(self):
+        result = self.cmr.ingestCollection(self._test_collection_path)
+        # If ingest wasn't successful, the above would've thrown a 4XX error
+        # But just to be sure, let's check that there was a result in the returned XML
+        self.assertTrue(
+            '<result><concept-id>' in result and
+            '<errors><error>' not in result
+        )
 
-    def test_collection_ingest(self):
-        pass
+    def granule_ingest(self):
+        result = self.cmr.ingestGranule(self._test_granule_path)
+        self.assertTrue(
+            '<result><concept-id>' in result and
+            '<errors><error>' not in result
+        )
 
-    def test_granule_ingest(self):
-        pass
+    def collection_update(self):
+        result = self.cmr.updateCollection(self._test_collection_path)
+        self.assertTrue(
+            '<result><concept-id>' in result and
+            '<errors><error>' not in result
+        )
 
-    def test_collection_update(self):
-        pass
+    def granule_update(self):
+        result = self.cmr.updateGranule(self._test_granule_path)
+        self.assertTrue(
+            '<result><concept-id>' in result and
+            '<errors><error>' not in result
+        )
 
-    def test_granule_update(self):
-        pass
+    def granule_delete(self):
+        result = self.cmr.deleteGranule(self._test_granule_name)
+        # Confirm that a tombstone was returned
+        self.assertTrue(
+            '<result><concept-id>' in result and
+            '<errors><error>' not in result
+        )
 
-    def test_granule_delete(self):
-        pass
+    def collection_delete(self):
+        result = self.cmr.deleteCollection(self._test_collection_name)
+        self.assertTrue(
+            '<result><concept-id>' in result and
+            '<errors><error>' not in result
+        )
 
-    def test_collection_delete(self):
-        pass
+    def test_monolith(self):
+        '''
+        Since these are order-sensitive integration tests,
+        wrap them in a monolithic test, so that they run in the proper order
 
-
-    #print cmr.searchGranule(GranuleUR="wwllnrt_20151106_daily_v1_lit.raw")
-
-    #print cmr.searchGranule(granule_ur="AMSR_2_L2_RainOcean_R00_201508190926_A.he5")
-    #print cmr.searchCollection(short_name="A2_RainOcn_NRT")
-    #print cmr.getGranuleUR("granuleupdated.xml")
-    #print cmr.searchGranule(granule_ur="UR_1.he13")
-    #print cmr.searchGranule(granule_ur="UR_1.he15")
-    #print cmr.ingestCollection("collection.xml")
-    #print cmr.ingestGranule("granule.xml")
-    #print cmr.ingestGranule("granuleupdated.xml")
-    #print cmr.ingestGranule("/home/marouane/cmr/test-granule.xml")
-    #print cmr.deleteGranule("UR_1.he11")
-    #print cmr.deleteCollection("NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
+        https://stackoverflow.com/questions/5387299/python-unittest-testcase-execution-order
+        '''
+        for test_name in [
+            'collection_search',
+            'granule_search',
+            'collection_ingest',
+            'granule_ingest',
+            'collection_update',
+            'granule_update',
+            'granule_delete',
+            'collection_delete'
+        ]:
+            test = getattr(self, test_name)
+            test()

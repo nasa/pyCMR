@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
     <Granule>
-      <GranuleUR>AMSR_2_L2_RainOcean_R00_201508190926_A.he5</GranuleUR>
+      <GranuleUR>PYCMR_TEST_GRANULE.hd5</GranuleUR>
       <InsertTime>2015-08-19T11:29:53Z</InsertTime>
       <LastUpdate>2016-06-19T11:29:53Z</LastUpdate>
       <DeleteTime>2016-09-02T23:59:59.999Z</DeleteTime>
       <Collection>
-        <ShortName>A2_RainOcn_NRT</ShortName>
+        <ShortName>PYCMR_TEST</ShortName>
         <VersionId>0</VersionId>
       </Collection>
       <DataGranule>

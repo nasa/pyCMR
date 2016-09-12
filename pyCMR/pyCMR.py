@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import re
 import shutil
 import xml.etree.ElementTree as ET
 try:
@@ -51,7 +50,7 @@ class CMR(object):
         self._granuleUrl = self.config.get("request", "GRANULE_URL")
         self._collectionUrl = self.config.get("request", "collection_url")
 
-        self._INGEST_URL = self.config.get("request", "ingest_url")  # Base URL for ingesting to CMR
+        self._INGEST_URL = self.config.get("request", "ingest_url")
         self._REQUEST_TOKEN_URL = self.config.get("request", "request_token_url")
 
         self._PROVIDER = self.config.get("credentials", "provider")
@@ -63,30 +62,11 @@ class CMR(object):
         self._createSession()
         if not self.config.get('credentials', 'ECHO_TOKEN'):
             self._generateNewToken()
+
         self._CONTENT_TYPE = self.config.get("request", "content_type")
         self._INGEST_HEADER = {'Content-type': self._CONTENT_TYPE}
         self._SEARCH_HEADER = {'Accept': self._CONTENT_TYPE}
         self._CMR_HOST = self.config.get("request", "cmr_host")
-
-    def _searchResult(self, url, limit, **kwargs):
-        """
-        Search using the CMR apis
-        :param url:
-        :param limit:
-        :param args:
-        :param kwargs:
-        :return: generator of xml strings
-        """
-        # Format the url with customized parameters
-        for k, v in kwargs.items():
-            url += "&{}={}".format(k, v)
-        result = [self.session.get(url.format(pagenum)).content
-                  for pagenum in xrange(1, (limit - 1) / 50 + 2)]
-        # for res in result:
-        #     for ref in re.findall("<reference>(.*?)</reference>", res):
-        #         yield ref
-        return [ref for res in result
-                for ref in re.findall("<reference>(.*?)</reference>", res)]
 
     def searchGranule(self, limit=100, **kwargs):
         """
@@ -145,7 +125,7 @@ class CMR(object):
         purpose: check if the token has been expired
         :return: True if the token has been expired; False otherwise.
         """
-        url = self._INGEST_URL + self._PROVIDER + "/collections/LarcDatasetId"
+        url = self._INGEST_URL + self._PROVIDER + "/collections/PYCMR_TEST"
         putGranule = requests.put(url=url, headers=self.session.headers)
         list_ = ['Token', 'expired', 'exists']  # if the token expired or does not exists
         if (len(putGranule.text.split('<error>')) > 1):  # if there is an error in the request
@@ -268,7 +248,7 @@ class CMR(object):
 
         return ET.tostring(top)
 
-    def ingestGranuleTextFile(self, pathToTextFile="/home/marouane/PycharmProjects/cmr-master/dataexample.txt"):
+    def ingestGranuleTextFile(self, pathToTextFile):
         """
         :purpose : ingest granules using cmr rest api
         :param pathToTextFile: a comma seperated values text file
