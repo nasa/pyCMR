@@ -1,4 +1,3 @@
-import re
 import requests
 import shutil
 import urllib
@@ -28,7 +27,6 @@ class Result(dict):
 
             with open(destpath + "/" + self._downloadname.replace('/', ''), 'wb') as f:
                 shutil.copyfileobj(r.raw, f)
-            pass
 
     def getDownloadUrl(self):
         """
@@ -37,13 +35,12 @@ class Result(dict):
         return self._location
 
 class Collection(Result):
-    def __init__(self, metaResult, locationResult):
-        self._location = re.search("<location>(.*?)</location>", locationResult).group(1)
-        self._location = self._location + ".umm-json"
-        self._downloadname = metaResult["short_name"]
+    def __init__(self, metaResult, cmr_host):
         for k in metaResult:
             self[k] = metaResult[k]
 
+        self._location = 'https://{}/search/concepts/{}.umm-json'.format(cmr_host, metaResult['concept-id'])
+        self._downloadname = metaResult['Collection']['ShortName']
 
 class Granule(Result):
     def __init__(self, metaResult):
@@ -52,7 +49,6 @@ class Granule(Result):
 
         # Retrieve downloadable url
         try:
-
             self._location = self['Granule']['OnlineAccessURLs']['OnlineAccessURL'][0]['URL']
             self._downloadname = self._location.split("/")[-1]
         except KeyError:
@@ -62,7 +58,7 @@ class Granule(Result):
         try:
             urls = self['Granule']['OnlineResources']['OnlineResource']
             self._OPeNDAPUrl = filter(lambda x: x["Type"] == "OPeNDAP", urls)[0]['URL']
-        except:
+        except KeyError:
             self._OPeNDAPUrl = None
 
     def getOPeNDAPUrl(self):

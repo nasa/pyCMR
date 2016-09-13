@@ -3,18 +3,14 @@ provider =
 username = 
 password = 
 client_id = 
-
-[ingest]
-ingest_url = https://cmr.uat.earthdata.nasa.gov/ingest/providers/
-content_type = application/echo10+xml
-echo_token =
-
-[search]
-search_url = https://cmr.uat.earthdata.nasa.gov/search
-granule_url = %(search_url)s/granules?page_size=50&page_num={}
-granule_meta_url = %(search_url)s/granules.echo10?page_size=50&page_num={}
-collection_url = %(search_url)s/collections?page_size=50&page_num={}
-collection_meta_url = %(search_url)s/collections.json?page_size=50&page_num={}
+echo_token = 
 
 [request]
 request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
+content_type = application/echo10+xml
+cmr_host = cmr.uat.earthdata.nasa.gov
+
+ingest_url = https://%(cmr_host)s/ingest/providers/
+
+search_granule_url = https://%(cmr_host)s/search/granules
+search_collection_url = https://%(cmr_host)s/search/collections

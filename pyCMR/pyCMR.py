@@ -1,6 +1,7 @@
 import json
+import logging
+import math
 import os
-import re
 import shutil
 import xml.etree.ElementTree as ET
 try:
@@ -28,7 +29,7 @@ class CMR(object):
             self.configFilePath = configFilePath
         elif not os.path.isfile(configFilePath) and \
             set(['CMR_PROVIDER', 'CMR_USERNAME', 'CMR_PASSWORD', 'CMR_CLIENT_ID']).issubset(set(os.environ.keys())):
-            print("Creating new config file, using information in the `CMR_*` environment variables")
+            logging.info("Creating new config file, using information in the `CMR_*` environment variables")
 
             pycmr_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             example_config_path = os.path.join(pycmr_base_dir, 'cmr.cfg.example')
@@ -43,16 +44,14 @@ class CMR(object):
             self.config.set('credentials', 'password', os.environ['CMR_PASSWORD'])
             self.config.set('credentials', 'client_id', os.environ['CMR_CLIENT_ID'])
             self.config.write(open(self.configFilePath, 'w'))
-            print("Config file created, at {}".format(new_config_path))
+            logging.info("Config file created, at {}".format(new_config_path))
         else:
             raise IOError("The config file can't be opened for reading/writing")
 
-        self._granuleUrl = self.config.get("search", "GRANULE_URL")
-        self._granuleMetaUrl = self.config.get("search", "granule_meta_url")
-        self._collectionUrl = self.config.get("search", "collection_url")
-        self._collectionMetaUrl = self.config.get("search", "collection_meta_url")
+        self._SEARCH_GRANULE_URL = self.config.get("request", "search_granule_url")
+        self._SEARCH_COLLECTION_URL = self.config.get("request", "search_collection_url")
 
-        self._INGEST_URL = self.config.get("ingest", "ingest_url")  # Base URL for ingesting to CMR
+        self._INGEST_URL = self.config.get("request", "ingest_url")
         self._REQUEST_TOKEN_URL = self.config.get("request", "request_token_url")
 
         self._PROVIDER = self.config.get("credentials", "provider")
@@ -60,93 +59,80 @@ class CMR(object):
         self._PASSWORD = self.config.get("credentials", "password")
         self._CLIENT_ID = self.config.get("credentials", "client_id")
 
-        self._ECHO_TOKEN = self.config.get("ingest", "echo_token")
+        self._ECHO_TOKEN = self.config.get("credentials", "echo_token")
         self._createSession()
-        if not self.config.get('ingest', 'ECHO_TOKEN'):
+        if not self.config.get('credentials', 'ECHO_TOKEN'):
             self._generateNewToken()
-        self._CONTENT_TYPE = self.config.get("ingest", "content_type")
+
+        self._CONTENT_TYPE = self.config.get("request", "content_type")
         self._INGEST_HEADER = {'Content-type': self._CONTENT_TYPE}
+        self._SEARCH_HEADER = {'Accept': self._CONTENT_TYPE}
+        self._CMR_HOST = self.config.get("request", "cmr_host")
 
-    def _searchResult(self, url, limit, **kwargs):
-        """
-        Search using the CMR apis
-        :param url:
-        :param limit:
-        :param args:
-        :param kwargs:
-        :return: generator of xml strings
-        """
-        # Format the url with customized parameters
-        for k, v in kwargs.items():
-            url += "&{}={}".format(k, v)
-        result = [self.session.get(url.format(pagenum)).content
-                  for pagenum in xrange(1, (limit - 1) / 50 + 2)]
-        # for res in result:
-        #     for ref in re.findall("<reference>(.*?)</reference>", res):
-        #         yield ref
-        return [ref for res in result
-                for ref in re.findall("<reference>(.*?)</reference>", res)]
-
-    def searchGranule(self, limit=100, **kwargs):
+    def searchGranule(self, page_size=50, limit=100, **kwargs):
         """
         Search the CMR granules
         :param limit: limit of the number of results
         :param kwargs: search parameters
         :return: list of results (<Instance of Result>)
         """
-        print ("======== Waiting for response ========")
-        metaUrl = self._granuleMetaUrl
-        for k, v in kwargs.items():
-            metaUrl += "&{}={}".format(k, v)
+        logging.info("======== Waiting for response ========")
 
-        metaResult = [self.session.get(metaUrl.format(pagenum)).content
-                      for pagenum in xrange(1, (limit - 1) / 50 + 2)]
+        metaResult = [
+            self.session.get(
+                self._SEARCH_GRANULE_URL,
+                params=kwargs.update({'page_size': page_size, 'page_num': page_num}),
+                headers=self._SEARCH_HEADER
+            ).content
+            for page_num in xrange(1, int(math.ceil((limit - 1.0) / page_size)) + 2)
+        ]
 
-        # The first can be the error msgs
         root = ET.XML(metaResult[0])
-        if root.tag == "errors":
-            raise ValueError(str([ch.text for ch in root._children]))
+        if root.tag == "results":
+            metaResult = [
+                ref for res in metaResult
+                for ref in XmlListConfig(ET.XML(res))[2:]
+            ]
+            return [Granule(m) for m in metaResult][:limit]
+        else:
+            # Errors have the top-level tag of `<errors>`
+            raise ValueError(metaResult[0])
 
-        metaResult = [ref for res in metaResult
-                      for ref in XmlListConfig(ET.XML(res))[2:]]
-
-        return [Granule(m) for m in metaResult][:limit]
-
-    def searchCollection(self, limit=100, **kwargs):
+    def searchCollection(self, page_size=50, limit=100, **kwargs):
         """
         Search the CMR collections
         :param limit: limit of the number of results
         :param kwargs: search parameters
         :return: list of results (<Instance of Result>)
         """
-        metaUrl = self._collectionMetaUrl
-        for k, v in kwargs.items():
-            metaUrl += "&{}={}".format(k, v)
+        logging.info("======== Waiting for response ========")
 
-        print ("======== Waiting for response ========")
-        metaResult = [self.session.get(metaUrl.format(pagenum))
-                      for pagenum in xrange(1, (limit - 1) / 50 + 2)]
+        metaResult = [
+            self.session.get(
+                self._SEARCH_COLLECTION_URL,
+                params=kwargs.update({'page_size': page_size, 'page_num': page_num}),
+                headers=self._SEARCH_HEADER
+            ).content
+            for page_num in xrange(1, int(math.ceil((limit - 1.0) / page_size)) + 2)
+        ]
 
-        try:
-            metaResult = [ref for res in metaResult
-                          for ref in json.loads(res.content)['feed']['entry']]
-        except KeyError:
-            raise KeyError(str((json.loads(metaResult[0].content))["errors"]))
-        except ValueError:
-            raise ValueError(
-                "Server responded with status code {}".format(metaResult[0].status_code) +
-                "At least one of the results cannot be parsed; here's the first:\n{}".format(metaResult[0].content)
-            )
-        locationResult = self._searchResult(self._collectionUrl, limit=limit, **kwargs)
-
-        return [Collection(m, l) for m, l in zip(metaResult, locationResult)][:limit]
+        root = ET.XML(metaResult[0])
+        if root.tag == "results":
+            metaResult = [
+                ref for res in metaResult
+                for ref in XmlListConfig(ET.XML(res))[2:]
+            ]
+            return [Collection(m, self._CMR_HOST) for m in metaResult][:limit]
+        else:
+            # Errors have the top-level tag of `<errors>`
+            raise ValueError(metaResult[0])
 
     def isTokenExpired(self):
         """
         purpose: check if the token has been expired
         :return: True if the token has been expired; False otherwise.
         """
-        url = self._INGEST_URL + self._PROVIDER + "/collections/LarcDatasetId"
+        url = self._INGEST_URL + self._PROVIDER + "/collections/PYCMR_TEST"
         putGranule = requests.put(url=url, headers=self.session.headers)
         list_ = ['Token', 'expired', 'exists']  # if the token expired or does not exists
         if (len(putGranule.text.split('<error>')) > 1):  # if there is an error in the request
@@ -269,7 +255,7 @@ class CMR(object):
 
         return ET.tostring(top)
 
-    def ingestGranuleTextFile(self, pathToTextFile="/home/marouane/PycharmProjects/cmr-master/dataexample.txt"):
+    def ingestGranuleTextFile(self, pathToTextFile):
         """
         :purpose : ingest granules using cmr rest api
         :param pathToTextFile: a comma seperated values text file
@@ -325,7 +311,7 @@ class CMR(object):
         provider.text = self._PROVIDER
 
         data = ET.tostring(top)
-        print("Requesting and setting up a new token... Please wait...")
+        logging.info("Requesting and setting up a new token... Please wait...")
         response = requests.post(url=self._REQUEST_TOKEN_URL, data=data, headers={'Content-Type': 'application/xml'})
         return response.text.split('<id>')[1].split('</id>')[0]
 
@@ -366,9 +352,9 @@ class CMR(object):
         replacing the expired token by a new one in the config file
         :return:
         """
-        print("Replacing the Echo Token")
+        logging.info("Replacing the Echo Token")
         theNewToken = self._getEchoToken()
-        self.config.set('ingest', 'ECHO_TOKEN',theNewToken)
+        self.config.set('credentials', 'ECHO_TOKEN',theNewToken)
         self.config.write(open(self.configFilePath, 'w'))
         self._ECHO_TOKEN = theNewToken
         self.session.headers.update({'Echo-Token': self._ECHO_TOKEN})
@@ -380,23 +366,3 @@ class CMR(object):
             'Client-Id': self._CLIENT_ID,
             'Echo-Token': self._ECHO_TOKEN
         })
-
-
-# if __name__ == "__main__":
-    # cmr = CMR("cmr.cfg")
-    #print cmr.ingestCollection("/home/marouane/PycharmProjects/cmr-master/test-collection.xml")
-    #print cmr.ingestGranuleTextFile("PathToTxtFile.txt)
-
-    #print cmr.searchGranule(GranuleUR="wwllnrt_20151106_daily_v1_lit.raw")
-
-    #print cmr.searchGranule(granule_ur="AMSR_2_L2_RainOcean_R00_201508190926_A.he5")
-    #print cmr.searchCollection(short_name="A2_RainOcn_NRT")
-    #print cmr.getGranuleUR("granuleupdated.xml")
-    #print cmr.searchGranule(granule_ur="UR_1.he13")
-    #print cmr.searchGranule(granule_ur="UR_1.he15")
-    #print cmr.ingestCollection("collection.xml")
-    #print cmr.ingestGranule("granule.xml")
-    #print cmr.ingestGranule("granuleupdated.xml")
-    #print cmr.ingestGranule("/home/marouane/cmr/test-granule.xml")
-    #print cmr.deleteGranule("UR_1.he11")
-    #print cmr.deleteCollection("NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
