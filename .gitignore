@@ -13,3 +13,6 @@ _build
 _static
 _templates
 PKG-INFO
+*.eggs
+dist
+*.egg-info
