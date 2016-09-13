@@ -1,5 +1,6 @@
 import os
 import unittest
+import xml.etree.ElementTree as ET
 
 from pyCMR.pyCMR import CMR
 from pyCMR.Result import Collection, Granule
@@ -32,51 +33,41 @@ class TestCMRIntegration(unittest.TestCase):
         result = self.cmr.ingestCollection(self._test_collection_path)
         # If ingest wasn't successful, the above would've thrown a 4XX error
         # But just to be sure, let's check that there was a result in the returned XML
-        self.assertTrue(
-            '<result><concept-id>' in result and
-            '<errors><error>' not in result
-        )
+        # Otherwise, the top-level tag would be `<errors>`
+        parsed = ET.XML(result)
+        self.assertTrue(parsed.tag == 'result')
 
     def granule_ingest(self):
         result = self.cmr.ingestGranule(self._test_granule_path)
-        self.assertTrue(
-            '<result><concept-id>' in result and
-            '<errors><error>' not in result
-        )
+        parsed = ET.XML(result)
+        self.assertTrue(parsed.tag == 'result')
 
     def collection_update(self):
         result = self.cmr.updateCollection(self._test_collection_path)
-        self.assertTrue(
-            '<result><concept-id>' in result and
-            '<errors><error>' not in result
-        )
+        parsed = ET.XML(result)
+        self.assertTrue(parsed.tag == 'result')
 
     def granule_update(self):
         result = self.cmr.updateGranule(self._test_granule_path)
-        self.assertTrue(
-            '<result><concept-id>' in result and
-            '<errors><error>' not in result
-        )
+        parsed = ET.XML(result)
+        self.assertTrue(parsed.tag == 'result')
 
     def granule_delete(self):
         result = self.cmr.deleteGranule(self._test_granule_name)
         # Confirm that a tombstone was returned
-        self.assertTrue(
-            '<result><concept-id>' in result and
-            '<errors><error>' not in result
-        )
+        parsed = ET.XML(result)
+        self.assertTrue(parsed.tag == 'result')
 
     def collection_delete(self):
         result = self.cmr.deleteCollection(self._test_collection_name)
-        self.assertTrue(
-            '<result><concept-id>' in result and
-            '<errors><error>' not in result
-        )
+        parsed = ET.XML(result)
+        self.assertTrue(parsed.tag == 'result')
 
     def test_monolith(self):
         '''
         Since these are order-sensitive integration tests,
         wrap them in a monolithic test, so that they run in the proper order
+        and stop after a single failure (without having to specify `failfast`)
 
         https://stackoverflow.com/questions/5387299/python-unittest-testcase-execution-order
         '''

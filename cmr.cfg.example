@@ -12,6 +12,5 @@ cmr_host = cmr.uat.earthdata.nasa.gov
 
 ingest_url = https://%(cmr_host)s/ingest/providers/
 
-page_size = 50
-granule_url = https://%(cmr_host)s/search/granules?page_size=%(page_size)s&page_num={}
-collection_url = https://%(cmr_host)s/search/collections?page_size=%(page_size)s&page_num={}
+search_granule_url = https://%(cmr_host)s/search/granules
+search_collection_url = https://%(cmr_host)s/search/collections

@@ -82,7 +82,7 @@
 <Type>DOI</Type></OnlineResource><OnlineResource>
 <URL>http://ghrc.nsstc.nasa.gov/uso/citation.html</URL><Description></Description>
 <Type>Citing GHRC Data</Type></OnlineResource></OnlineResources><AssociatedDIFs><DIF>
-<EntryId>A2_RainOcn_NRT</EntryId></DIF></AssociatedDIFs><Spatial><SpatialCoverageType>Horizontal</SpatialCoverageType><HorizontalSpatialDomain><Geometry>
+<EntryId>PYCMR_TEST</EntryId></DIF></AssociatedDIFs><Spatial><SpatialCoverageType>Horizontal</SpatialCoverageType><HorizontalSpatialDomain><Geometry>
 <CoordinateSystem>CARTESIAN</CoordinateSystem><BoundingRectangle>
 <WestBoundingCoordinate>-180</WestBoundingCoordinate>
 <NorthBoundingCoordinate>90</NorthBoundingCoordinate>

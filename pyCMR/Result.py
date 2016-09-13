@@ -58,7 +58,7 @@ class Granule(Result):
         try:
             urls = self['Granule']['OnlineResources']['OnlineResource']
             self._OPeNDAPUrl = filter(lambda x: x["Type"] == "OPeNDAP", urls)[0]['URL']
-        except:
+        except KeyError:
             self._OPeNDAPUrl = None
 
     def getOPeNDAPUrl(self):

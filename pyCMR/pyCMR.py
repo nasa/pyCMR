@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import os
 import shutil
 import xml.etree.ElementTree as ET
@@ -47,8 +48,8 @@ class CMR(object):
         else:
             raise IOError("The config file can't be opened for reading/writing")
 
-        self._granuleUrl = self.config.get("request", "GRANULE_URL")
-        self._collectionUrl = self.config.get("request", "collection_url")
+        self._SEARCH_GRANULE_URL = self.config.get("request", "search_granule_url")
+        self._SEARCH_COLLECTION_URL = self.config.get("request", "search_collection_url")
 
         self._INGEST_URL = self.config.get("request", "ingest_url")
         self._REQUEST_TOKEN_URL = self.config.get("request", "request_token_url")
@@ -68,7 +69,7 @@ class CMR(object):
         self._SEARCH_HEADER = {'Accept': self._CONTENT_TYPE}
         self._CMR_HOST = self.config.get("request", "cmr_host")
 
-    def searchGranule(self, limit=100, **kwargs):
+    def searchGranule(self, page_size=50, limit=100, **kwargs):
         """
         Search the CMR granules
         :param limit: limit of the number of results
@@ -77,24 +78,27 @@ class CMR(object):
         """
         logging.info("======== Waiting for response ========")
 
-        metaUrl = self._granuleUrl
-        for k, v in kwargs.items():
-            metaUrl += "&{}={}".format(k, v)
+        metaResult = [
+            self.session.get(
+                self._SEARCH_GRANULE_URL,
+                params=kwargs.update({'page_size': page_size, 'page_num': page_num}),
+                headers=self._SEARCH_HEADER
+            ).content
+            for page_num in xrange(1, int(math.ceil((limit - 1.0) / page_size)) + 2)
+        ]
 
-        metaResult = [self.session.get(metaUrl.format(pagenum), headers=self._SEARCH_HEADER).content
-                      for pagenum in xrange(1, (limit - 1) / 50 + 2)]
-
-        # The first can be the error msgs
         root = ET.XML(metaResult[0])
-        if root.tag == "errors":
-            raise ValueError(str([ch.text for ch in root._children]))
+        if root.tag == "results":
+            metaResult = [
+                ref for res in metaResult
+                for ref in XmlListConfig(ET.XML(res))[2:]
+            ]
+            return [Granule(m) for m in metaResult][:limit]
+        else:
+            # Errors have the top-level tag of `<errors>`
+            raise ValueError(metaResult[0])
 
-        metaResult = [ref for res in metaResult
-                      for ref in XmlListConfig(ET.XML(res))[2:]]
-
-        return [Granule(m) for m in metaResult][:limit]
-
-    def searchCollection(self, limit=100, **kwargs):
+    def searchCollection(self, page_size=50, limit=100, **kwargs):
         """
         Search the CMR collections
         :param limit: limit of the number of results
@@ -103,22 +107,25 @@ class CMR(object):
         """
         logging.info("======== Waiting for response ========")
 
-        metaUrl = self._collectionUrl
-        for k, v in kwargs.items():
-            metaUrl += "&{}={}".format(k, v)
+        metaResult = [
+            self.session.get(
+                self._SEARCH_COLLECTION_URL,
+                params=kwargs.update({'page_size': page_size, 'page_num': page_num}),
+                headers=self._SEARCH_HEADER
+            ).content
+            for page_num in xrange(1, int(math.ceil((limit - 1.0) / page_size)) + 2)
+        ]
 
-        metaResult = [self.session.get(metaUrl.format(pagenum), headers=self._SEARCH_HEADER).content
-                      for pagenum in xrange(1, (limit - 1) / 50 + 2)]
-
-        # The first can be the error msgs
         root = ET.XML(metaResult[0])
-        if root.tag == "errors":
-            raise ValueError(str([ch.text for ch in root._children]))
-
-        metaResult = [ref for res in metaResult
-                      for ref in XmlListConfig(ET.XML(res))[2:]]
-
-        return [Collection(m, self._CMR_HOST) for m in metaResult][:limit]
+        if root.tag == "results":
+            metaResult = [
+                ref for res in metaResult
+                for ref in XmlListConfig(ET.XML(res))[2:]
+            ]
+            return [Collection(m, self._CMR_HOST) for m in metaResult][:limit]
+        else:
+            # Errors have the top-level tag of `<errors>`
+            raise ValueError(metaResult[0])
 
     def isTokenExpired(self):
         """
