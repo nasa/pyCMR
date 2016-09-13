@@ -22,7 +22,6 @@ class CMR(object):
         These con
         """
         self.config = ConfigParser()
-
         if os.path.isfile(configFilePath) and os.access(configFilePath, os.R_OK | os.W_OK):
             # Open the config file as normal
             self.config.read(configFilePath)
@@ -33,6 +32,12 @@ class CMR(object):
 
             pycmr_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             example_config_path = os.path.join(pycmr_base_dir, 'cmr.cfg.example')
+
+            if not os.path.isfile((example_config_path)):
+                with open(os.path.join(pycmr_base_dir, 'cmr.cfg.example'), 'w') as e:
+                    e.write(base_cfg)
+                    e.close()
+
             new_config_path = os.path.join(pycmr_base_dir, 'cmr.cfg')
             shutil.copyfile(example_config_path, new_config_path)
             configFilePath = new_config_path
@@ -270,10 +275,10 @@ class CMR(object):
             xmldata = self.fromJsonToXML(ele) # convert from json to xml
             data = self.__ingestGranuleData(data=xmldata, granule_ur=ele['granule_name']) # ingest each granule
             returnList.append(data)
-            if (data['status'] >= 400): # if there is an error during the ingestion 
+            if (data['status'] >= 400): # if there is an error during the ingestion
                 errorCount += 1 # increment the counter
             returnList.append(data['log'])
-           
+
         return {'logs': returnList,
                 'result': str(len(listargs) - errorCount) + " successful ingestion out of " + str(len(listargs))}
 
@@ -366,3 +371,20 @@ class CMR(object):
             'Client-Id': self._CLIENT_ID,
             'Echo-Token': self._ECHO_TOKEN
         })
+
+base_cfg = """[credentials]
+provider =
+username =
+password =
+client_id =
+echo_token =
+
+[request]
+request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
+content_type = application/echo10+xml
+cmr_host = cmr.uat.earthdata.nasa.gov
+
+ingest_url = https://%(cmr_host)s/ingest/providers/
+
+search_granule_url = https://%(cmr_host)s/search/granules
+search_collection_url = https://%(cmr_host)s/search/collections"""
