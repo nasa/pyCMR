@@ -16,3 +16,4 @@ PKG-INFO
 *.eggs
 dist
 *.egg-info
+.cache
