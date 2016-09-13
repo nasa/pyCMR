@@ -2,8 +2,7 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from pyCMR.pyCMR import CMR
-from pyCMR.Result import Collection, Granule
+from pyCMR import CMR, Collection, Granule
 
 
 class TestCMRIntegration(unittest.TestCase):
