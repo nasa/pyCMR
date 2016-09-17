@@ -82,3 +82,10 @@ class TestCMRIntegration(unittest.TestCase):
         ]:
             test = getattr(self, test_name)
             test()
+
+    def test_search_limit(self):
+        ''' Make sure that the correct number of items are returned by searches '''
+        results = self.cmr.searchCollection(limit=3)
+        self.assertTrue(len(results) == 3)
+        results = self.cmr.searchGranule(limit=91)
+        self.assertTrue(len(results) == 91)
