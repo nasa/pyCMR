@@ -12,7 +12,7 @@ except ImportError:
 import requests
 
 from Result import Collection, Granule
-from xmlParser import XmlListConfig, ComaSeperatedToListJson
+from xmlParser import XmlDictConfig, ComaSeperatedToListJson
 
 
 class CMR(object):
@@ -53,6 +53,7 @@ class CMR(object):
         else:
             raise IOError("The config file can't be opened for reading/writing")
 
+        self._PAGE_SIZE = self.config.getint("request", "page_size")
         self._SEARCH_GRANULE_URL = self.config.get("request", "search_granule_url")
         self._SEARCH_COLLECTION_URL = self.config.get("request", "search_collection_url")
 
@@ -74,7 +75,7 @@ class CMR(object):
         self._SEARCH_HEADER = {'Accept': self._CONTENT_TYPE}
         self._CMR_HOST = self.config.get("request", "cmr_host")
 
-    def searchGranule(self, page_size=50, limit=100, **kwargs):
+    def _get_search_results(self, url, limit, **kwargs):
         """
         Search the CMR granules
         :param limit: limit of the number of results
@@ -83,54 +84,45 @@ class CMR(object):
         """
         logging.info("======== Waiting for response ========")
 
-        metaResult = [
-            self.session.get(
-                self._SEARCH_GRANULE_URL,
-                params=kwargs.update({'page_size': page_size, 'page_num': page_num}),
+        page_num = 1
+        results = []
+        while len(results) < limit:
+            response = requests.get(
+                url=url,
+                params=dict(kwargs, page_num=page_num, page_size=self._PAGE_SIZE),
                 headers=self._SEARCH_HEADER
-            ).content
-            for page_num in xrange(1, int(math.ceil((limit - 1.0) / page_size)) + 2)
-        ]
+            )
+            unparsed_page = response.content
+            page = ET.XML(unparsed_page)
 
-        root = ET.XML(metaResult[0])
-        if root.tag == "results":
-            metaResult = [
-                ref for res in metaResult
-                for ref in XmlListConfig(ET.XML(res))[2:]
-            ]
-            return [Granule(m) for m in metaResult][:limit]
-        else:
-            # Errors have the top-level tag of `<errors>`
-            raise ValueError(metaResult[0])
+            empty_page = True
+            for child in list(page):
+                if child.tag == 'result':
+                    results.append(XmlDictConfig(child))
+                    empty_page = False
+                elif child.tag == 'error':
+                    raise ValueError('Bad search response: {}'.format(unparsed_page))
 
-    def searchCollection(self, page_size=50, limit=100, **kwargs):
+            if empty_page:
+                break
+            else:
+                page_num += 1
+
+        return results
+
+    def searchGranule(self, limit=100, **kwargs):
+        results = self._get_search_results(url=self._SEARCH_GRANULE_URL, limit=limit, **kwargs)
+        return [Granule(result) for result in results][:limit]
+
+    def searchCollection(self, limit=100, **kwargs):
         """
         Search the CMR collections
         :param limit: limit of the number of results
         :param kwargs: search parameters
         :return: list of results (<Instance of Result>)
         """
-        logging.info("======== Waiting for response ========")
-
-        metaResult = [
-            self.session.get(
-                self._SEARCH_COLLECTION_URL,
-                params=kwargs.update({'page_size': page_size, 'page_num': page_num}),
-                headers=self._SEARCH_HEADER
-            ).content
-            for page_num in xrange(1, int(math.ceil((limit - 1.0) / page_size)) + 2)
-        ]
-
-        root = ET.XML(metaResult[0])
-        if root.tag == "results":
-            metaResult = [
-                ref for res in metaResult
-                for ref in XmlListConfig(ET.XML(res))[2:]
-            ]
-            return [Collection(m, self._CMR_HOST) for m in metaResult][:limit]
-        else:
-            # Errors have the top-level tag of `<errors>`
-            raise ValueError(metaResult[0])
+        results = self._get_search_results(url=self._SEARCH_COLLECTION_URL, limit=limit, **kwargs)
+        return [Collection(result, self._CMR_HOST) for result in results][:limit]
 
     def isTokenExpired(self):
         """
@@ -386,5 +378,6 @@ cmr_host = cmr.uat.earthdata.nasa.gov
 
 ingest_url = https://%(cmr_host)s/ingest/providers/
 
+page_size = 50
 search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections"""
