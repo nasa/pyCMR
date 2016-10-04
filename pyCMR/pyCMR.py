@@ -1,8 +1,9 @@
 import json
 import logging
-import math
+from hs3_meta_data import metaDataTool
 import os
 import shutil
+from datetime import datetime
 import xml.etree.ElementTree as ET
 try:
     from configparser import ConfigParser
@@ -12,7 +13,7 @@ except ImportError:
 import requests
 
 from Result import Collection, Granule
-from xmlParser import XmlDictConfig, ComaSeperatedToListJson
+from xmlParser import XmlDictConfig, ComaSeperatedToListJson, ComaSeperatedDataToListJson
 
 
 class CMR(object):
@@ -162,15 +163,15 @@ class CMR(object):
         except:
             raise KeyError("Could not find <ShortName> tag")
 
-    def _getGranuleUR(self, pathToXMLFile):
+    def _getGranuleUR(self, data):
         """
             Purpose : a private function to parse the xml file and returns the datasetShortName
             :param pathToXMLFile:
             :return:  the datasetShortName
             """
-        tree = ET.parse(pathToXMLFile)
+
         try:
-            return tree.find("GranuleUR").text
+            return data.find("GranuleUR").text
         except:
             raise KeyError("Could not find <GranuleUR> tag")
 
@@ -219,57 +220,154 @@ class CMR(object):
                 self._generateNewToken()
             putGranule = self.session.put(url=url, data=data, headers=self._INGEST_HEADER)
 
-            return putGranule.content
+            return putGranule
 
         else:
-            raise ValueError("Collection failed to validate:\n{}".format(validateGranuleRequest.content))
+            raise ValueError("Granule failed to validate:\n{}".format(validateGranuleRequest.content))
 
-    def ingestGranule(self, pathToXMLFile):
+    def ingestGranule(self, XMLData):
         """
         :purpose : ingest granules using cmr rest api
         :param pathToXMLFile:
         :return: the ingest granules request if it is successfully validated
         """
-        granule_ur = self._getGranuleUR(pathToXMLFile=pathToXMLFile)
-        data = self._getXMLData(pathToXMLFile=pathToXMLFile)
-        response = self.__ingestGranuleData(data=data, granule_ur=granule_ur)
+
+        response=[]
+        if os.path.isfile(XMLData):
+            tree = ET.parse(XMLData)
+            root = tree.getroot()
+        else:
+            root = ET.fromstring(XMLData)
+
+
+
+        for data in root.iter('Granule'):
+            granule_ur = self._getGranuleUR( data=data)
+
+            response.append(self.__ingestGranuleData(data=ET.tostring(data), granule_ur=granule_ur))
+
         return response
 
-    def fromJsonToXML(self, data):
-        top = ET.Element("Granule")
 
+
+    def _getdata(self, data, keyword):
+        try :
+            return data[keyword]
+        except:
+
+            return None
+
+
+    def fromJsonToXML(self, data):
+        today=datetime.now()
+
+        #====Top level tag =====
+        top = ET.Element("Granule")
         GranuleUR = ET.SubElement(top, "GranuleUR")
         GranuleUR.text = data['granule_name']
         InsertTime = ET.SubElement(top, "InsertTime")
-        InsertTime.text = data['start_date']
+        InsertTime.text=today.strftime("%Y-%m-%dT%H:%M:%SZ")
         LastUpdate = ET.SubElement(top, "LastUpdate")
-        LastUpdate.text = data['start_date']
+        LastUpdate.text =today.strftime("%Y-%m-%dT%H:%M:%SZ")
         Collection = ET.SubElement(top, "Collection")
         DataSetId = ET.SubElement(Collection, "DataSetId")
-        DataSetId.text = data['ds_short_name']
+        DataSetId.text = self._getdata(data, 'DataSetId')
+
+
+
+        # =============DataGranule tag ========================#
+        DataGranule = ET.Element("DataGranule")
+        SizeMBDataGranule = ET.SubElement(DataGranule, "SizeMBDataGranule")
+        SizeMBDataGranule.text=self._getdata(data, 'size')
+        DayNightFlag = ET.SubElement(DataGranule, "DayNightFlag")
+        DayNightFlag.text = "UNSPECIFIED"
+        ProductionDateTime = ET.SubElement(DataGranule, "ProductionDateTime")
+        ProductionDateTime.text = today.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if SizeMBDataGranule.text:
+            SizeMBDataGranule.text= str(int(SizeMBDataGranule.text)* 10E-6) # Convert to MiB units
+            top.append(DataGranule)
+
+
+
+
+        # =============Temporal tag ========================#
+        Temporal = ET.Element("Temporal")
+        RangeDateTime=ET.SubElement(Temporal,"RangeDateTime")
+        BeginningDateTime=ET.SubElement(RangeDateTime,"BeginningDateTime")
+        BeginningDateTime.text =self._getdata(data,'start_date')
+        EndingDateTime=ET.SubElement(RangeDateTime,"EndingDateTime")
+        EndingDateTime.text =  self._getdata(data,'start_date')
+        BeginningDateTime.text = self._getdata(data,'start_date')
+        top.append(Temporal)
+
+        #=============Spatial tag ========================#
+
+
+        Spatial=ET.Element("Spatial")
+        HorizontalSpatialDomain=ET.SubElement(Spatial, "HorizontalSpatialDomain")
+        Geometry=ET.SubElement(HorizontalSpatialDomain, "Geometry")
+        BoundingRectangle=ET.SubElement(Geometry, "BoundingRectangle")
+        WestBoundingCoordinate=ET.SubElement(BoundingRectangle, "WestBoundingCoordinate")
+        WestBoundingCoordinate.text= self._getdata(data,'WLon')
+        NorthBoundingCoordinate=ET.SubElement(BoundingRectangle, "NorthBoundingCoordinate")
+        NorthBoundingCoordinate.text= self._getdata(data,'NLat')
+        EastBoundingCoordinate=ET.SubElement(BoundingRectangle, "EastBoundingCoordinate")
+        EastBoundingCoordinate.text= self._getdata(data,'ELon')
+        SouthBoundingCoordinate=ET.SubElement(BoundingRectangle, "SouthBoundingCoordinate")
+        SouthBoundingCoordinate.text= self._getdata(data,'SLat')
+        if None not in [SouthBoundingCoordinate.text,EastBoundingCoordinate.text,WestBoundingCoordinate.text,NorthBoundingCoordinate.text]:
+            top.append(Spatial)
+
+
+
+
+
+
+
         Orderable = ET.SubElement(top, "Orderable")
         Orderable.text = "true"
 
         return ET.tostring(top)
 
-    def ingestGranuleTextFile(self, pathToTextFile):
+    def ingestIphexHiwrapeData(self, rootDir):
+        meta = metaDataTool()
+        data = meta.processIphexHiwrapeData(rootDir=rootDir)
+        self.ingestGranuleTextFile(data=data)
+
+
+
+    def ingestGranuleTextFile(self, pathToTextFile=None, data=None):
         """
         :purpose : ingest granules using cmr rest api
         :param pathToTextFile: a comma seperated values text file
 
         :return: logs of the requests and the overall successful ingestions
         """
-        listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile) # convert comma seperated text file into list of json data
+
+        if data==None:
+            listargs = ComaSeperatedToListJson(pathToFile=pathToTextFile) # convert comma seperated text file into list of json data
+        else:
+            listargs=ComaSeperatedDataToListJson(data=data)
+
         returnList = []
         errorCount = 0
 
         for ele in listargs: # for each element in list of json data
             xmldata = self.fromJsonToXML(ele) # convert from json to xml
+
+            print(xmldata)
+
             data = self.__ingestGranuleData(data=xmldata, granule_ur=ele['granule_name']) # ingest each granule
+
+
             returnList.append(data)
-            if (data['status'] >= 400): # if there is an error during the ingestion
+
+
+
+
+            if (data.status_code >= 400): # if there is an error during the ingestion
                 errorCount += 1 # increment the counter
-            returnList.append(data['log'])
+            returnList.append(data.content)
 
         return {'logs': returnList,
                 'result': str(len(listargs) - errorCount) + " successful ingestion out of " + str(len(listargs))}
@@ -310,10 +408,16 @@ class CMR(object):
         data = ET.tostring(top)
         logging.info("Requesting and setting up a new token... Please wait...")
         response = requests.post(url=self._REQUEST_TOKEN_URL, data=data, headers={'Content-Type': 'application/xml'})
-        return response.text.split('<id>')[1].split('</id>')[0]
+        if response.ok:
+            return response.text.split('<id>')[1].split('</id>')[0]
+        else:
+            raise ValueError("New Token failed to be generated:\n{}".format(response.content))
+
+
+
 
     def updateGranule(self, pathToXMLFile):
-        return self.ingestGranule(pathToXMLFile=pathToXMLFile)
+        return self.ingestGranule(XMLData=pathToXMLFile)
 
     def deleteGranule(self, granule_ur):
         """
@@ -343,6 +447,21 @@ class CMR(object):
         with open(pathToXMLFile, 'r') as xml_file:
             data = xml_file.read()
             return data
+
+
+    def ingestNetCDFFiles(self, rootDir, dataSetId):
+        metaData=metaDataTool()
+        xmldata=metaData.getMetaData(rootDir=rootDir, dataSetId=dataSetId)
+        self.ingestGranule(xmldata)
+
+
+
+
+
+
+
+
+
 
     def _generateNewToken(self):
         """
@@ -381,3 +500,23 @@ ingest_url = https://%(cmr_host)s/ingest/providers/
 page_size = 50
 search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections"""
+
+
+
+
+
+
+if __name__=="__main__":
+    cmr=CMR("../cmr.cfg.example")
+    #print cmr.searchCollection(concept_id="C1216373824-GHRC")
+    #print cmr.deleteCollection(dataset_id="NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
+    #print cmr.ingestCollection(pathToXMLFile="/home/marouane/pyCMR_python2.7/test-collection.xml")
+    print cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX",dataSetId="Allah A3lam")
+    #print cmr.ingestGranuleTextFile(pathToTextFile="/home/marouane/Downloads/dataexample.txt")
+    #print(cmr.ingestGranule(XMLData="/home/marouane/Desktop/GHRCg__gpmrgnaifld2.xml"))
+    #print cmr.ingestCollection("/home/marouane/Desktop/GHRCc_gpmepfl.xml")
+
+
+    #print cmr.ingestGranule("/home/marouane/Documents/xmls/onegranule.xml")
+    #print cmr.ingestCollection("/home/marouane/Documents/xmls/GHRCc_gpmrgnaifld2.xml")
+

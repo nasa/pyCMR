@@ -2,15 +2,21 @@ from itertools import izip
 
 
 
-def ComaSeperatedToListJson(pathToFile="data_example"):
+def ComaSeperatedToListJson(pathToFile="data_example", data=None):
     #py=GHRCCatalog("configFile.cfg")
+
     fileLines=open(pathToFile)
+
+
     lines=[]
     listJson=[]
+    print(fileLines)
+
     for ele in fileLines:
         if (ele=='\n'):
             continue
         ele=ele.replace("=", ",")
+
         lines.append(ele)
     for ele in lines:
         iterator=iter(ele.split(","))
@@ -19,6 +25,27 @@ def ComaSeperatedToListJson(pathToFile="data_example"):
         #print post['status'], post['result']
         listJson.append(args)
     return listJson
+
+
+def ComaSeperatedDataToListJson(data):
+    lines = []
+    listJson = []
+    for ele in data:
+        ele=ele[0] # the data is a list of data so I am taking the first elemnt from each
+        ele = ele.replace("=", ",")
+        lines.append(ele)
+    for ele in lines:
+        iterator = iter(ele.split(","))
+        args = dict(izip(iterator, iterator))
+            # post=py.ingestGranule(**args)
+            # print post['status'], post['result']
+        listJson.append(args)
+    return listJson
+
+
+
+
+
 
 
 class XmlListConfig(list):
