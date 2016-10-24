@@ -518,14 +518,18 @@ class metaDataTool:
 
         url=self._META_DATA_URL_RESOURCES+ds_short_name+self._API_META_DATA_RESOURCES
 
-        req=requests.get(url)
-        req=req.json()
+
+        try:
+            req=requests.get(url)
+
+        except:
+            return []
+        req = req.json()
 
         for ele in req['resource']:
-            urls.append({'url': ele['ds_url'],'url_type':ele['ds_url_type'], 'description':ele['ds_url_comments']})
+            urls.append({'url': ele['ds_url'], 'url_type': ele['ds_url_type'], 'description': ele['ds_url_comments']})
 
         return urls
-
 
 
 
