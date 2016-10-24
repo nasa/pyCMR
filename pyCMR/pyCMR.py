@@ -67,6 +67,11 @@ class CMR(object):
         self._CLIENT_ID = self.config.get("credentials", "client_id")
 
         self._ECHO_TOKEN = self.config.get("credentials", "echo_token")
+        self._META_DATA_URL_RESOURCES = self.config.get("metadata", "metaData_api_url")
+        self._API_META_DATA_RESOURCES=self.config.get("metadata", "metaData_api_key")
+
+
+
         self._createSession()
         if not self.config.get('credentials', 'ECHO_TOKEN'):
             self._generateNewToken()
@@ -220,7 +225,7 @@ class CMR(object):
                 self._generateNewToken()
             putGranule = self.session.put(url=url, data=data, headers=self._INGEST_HEADER)
 
-            return putGranule
+            return putGranule.content
 
         else:
             raise ValueError("Granule failed to validate:\n{}".format(validateGranuleRequest.content))
@@ -256,6 +261,12 @@ class CMR(object):
         except:
 
             return None
+
+
+
+
+
+
 
 
     def fromJsonToXML(self, data):
@@ -317,6 +328,10 @@ class CMR(object):
         SouthBoundingCoordinate.text= self._getdata(data,'SLat')
         if None not in [SouthBoundingCoordinate.text,EastBoundingCoordinate.text,WestBoundingCoordinate.text,NorthBoundingCoordinate.text]:
             top.append(Spatial)
+
+
+
+
 
 
 
@@ -402,8 +417,8 @@ class CMR(object):
         client_id.text = self._CLIENT_ID
         user_ip_address = ET.SubElement(top,"user_ip_address")
         user_ip_address.text = self._getIPAddress()
-        provider = ET.SubElement(top,"provider")
-        provider.text = self._PROVIDER
+        #provider = ET.SubElement(top,"provider")
+        #provider.text = self._PROVIDER
 
         data = ET.tostring(top)
         logging.info("Requesting and setting up a new token... Please wait...")
@@ -449,10 +464,13 @@ class CMR(object):
             return data
 
 
-    def ingestNetCDFFiles(self, rootDir, dataSetId):
-        metaData=metaDataTool()
-        xmldata=metaData.getMetaData(rootDir=rootDir, dataSetId=dataSetId)
-        self.ingestGranule(xmldata)
+    def ingestNetCDFFiles(self, rootDir, ds_short_name):
+        metaData=metaDataTool(self._META_DATA_URL_RESOURCES,self._API_META_DATA_RESOURCES)
+        xmldata=metaData.getMetaData(rootDir=rootDir, ds_short_name=ds_short_name)
+
+        print xmldata
+
+        #return self.ingestGranule(xmldata)
 
 
 
@@ -508,13 +526,15 @@ search_collection_url = https://%(cmr_host)s/search/collections"""
 
 if __name__=="__main__":
     cmr=CMR("../cmr.cfg.example")
+
     #print cmr.searchCollection(concept_id="C1216373824-GHRC")
     #print cmr.deleteCollection(dataset_id="NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
     #print cmr.ingestCollection(pathToXMLFile="/home/marouane/pyCMR_python2.7/test-collection.xml")
-    print cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX",dataSetId="Allah A3lam")
+    #print cmr.isTokenExpired()
+    print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl"))
     #print cmr.ingestGranuleTextFile(pathToTextFile="/home/marouane/Downloads/dataexample.txt")
     #print(cmr.ingestGranule(XMLData="/home/marouane/Desktop/GHRCg__gpmrgnaifld2.xml"))
-    #print cmr.ingestCollection("/home/marouane/Desktop/GHRCc_gpmepfl.xml")
+    #print cmr.ingestCollection("/home/marouane/pyCMR_python2.7/test-collection.xml")
 
 
     #print cmr.ingestGranule("/home/marouane/Documents/xmls/onegranule.xml")

@@ -1,9 +1,9 @@
 [credentials]
-provider = GHRC
-username = ghrc
-password = Gl0balH@zards
-client_id = ghrc
-echo_token = F4FFBA65-1625-CBE9-E20B-164B955FCB70
+provider =
+username =
+password =
+client_id =
+echo_token =
 
 [request]
 request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
@@ -13,4 +13,8 @@ ingest_url = https://%(cmr_host)s/ingest/providers/
 page_size = 50
 search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections
+
+[metadata]
+metaData_api_url =
+metaData_api_key=
 
