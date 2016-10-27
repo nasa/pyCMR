@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import Queue
 import errno
 import fnmatch
@@ -12,12 +14,18 @@ import tempfile
 import threading
 from datetime import datetime
 import xml.etree.ElementTree as ET
-
 from read_variable_nc import read_variable_nc
 import requests
 from read_eol_sf import read_eol_sf
 from itertools import izip
 import sys
+
+
+
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 # The root of where ds_url refers to.
 # The 'path=' metadata for files will be relative to this directory
 
@@ -27,13 +35,23 @@ import sys
 
 
 class metaDataTool:
-    def __init__(self, metaDataURLResources, metaDataAPI):
+    def __init__(self, metaDataURLResources=None, metaDataAPI=None):
+        """
+
+        :param metaDataURLResources: api from where to fetch granule online resources
+        :param metaDataAPI: api key providing the permission to fetch the resources
+        """
 
         self.defaultDateTimeFormat = "%Y-%m-%dT%H:%M:%SZ"
         self.defaultFieldOrder = [ "host","env","project","ds","inv","file","path","size","start","end",
                       "browse","checksum","NLat","SLat","WLon","ELon" ]
-        self._META_DATA_URL_RESOURCES=metaDataURLResources
-        self._API_META_DATA_RESOURCES=metaDataAPI
+
+        try :
+            self._META_DATA_URL_RESOURCES = self.config.get("metadata", "metaData_api_url")
+            self._API_META_DATA_RESOURCES = self.config.get("metadata", "metaData_api_key")
+        except:
+            self._META_DATA_URL_RESOURCES=metaDataURLResources
+            self._API_META_DATA_RESOURCES=metaDataAPI
 
 
     def __fileParserPostparseGenerator(self,patternsToParsers, relpath, files):
@@ -386,7 +404,7 @@ class metaDataTool:
 
 
 
-    def fromJsonToXML(self, data, ds_short_name):
+    def fromJsonToXML(self, data, ds_short_name,versionId=1):
         head=ET.Element("Granules")
         today = datetime.now()
         for ele in data:
@@ -403,7 +421,7 @@ class metaDataTool:
             ShortName = ET.SubElement(Collection, "ShortName")
             ShortName.text = ds_short_name
             VersionId=ET.SubElement(Collection, "VersionId")
-            VersionId.text = "1"
+            VersionId.text = str(versionId)
 
             # =============DataGranule tag ========================#
             DataGranule = ET.Element("DataGranule")
@@ -504,22 +522,28 @@ class metaDataTool:
             listJson.append(args)
         return listJson
 
-    def getMetaData(self, rootDir, ds_short_name):
+    def getMetaData(self, rootDir, ds_short_name, versionId=1):
         data=self.processIphexHiwrapeData(rootDir)
 
         commaSeperatedFile=self.ComaSeperatedDataToListJson(data=data)
 
-        return self.fromJsonToXML(commaSeperatedFile,ds_short_name)
+        return self.fromJsonToXML(commaSeperatedFile,ds_short_name, versionId=versionId)
 
 
     def getMetaDataURLS(self,ds_short_name):
         urls=[]
+        if None in [self._META_DATA_URL_RESOURCES,self._API_META_DATA_RESOURCES]:
+            #If the url to fetch online resources is not provided return empty list
+            return []
 
 
         url=self._META_DATA_URL_RESOURCES+ds_short_name+self._API_META_DATA_RESOURCES
+        print url
+
 
 
         try:
+            #If the link provided is broken return the empty list
             req=requests.get(url)
 
         except:

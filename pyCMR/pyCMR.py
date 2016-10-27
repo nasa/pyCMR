@@ -67,8 +67,7 @@ class CMR(object):
         self._CLIENT_ID = self.config.get("credentials", "client_id")
 
         self._ECHO_TOKEN = self.config.get("credentials", "echo_token")
-        self._META_DATA_URL_RESOURCES = self.config.get("metadata", "metaData_api_url")
-        self._API_META_DATA_RESOURCES=self.config.get("metadata", "metaData_api_key")
+
 
 
 
@@ -233,7 +232,7 @@ class CMR(object):
     def ingestGranule(self, XMLData):
         """
         :purpose : ingest granules using cmr rest api
-        :param pathToXMLFile:
+        :XMLData XML data to engist to cmr:
         :return: the ingest granules request if it is successfully validated
         """
 
@@ -270,6 +269,11 @@ class CMR(object):
 
 
     def fromJsonToXML(self, data):
+        """
+        :purpose Convert json format to XML format
+        :param data: Json data
+        :return: XML data
+        """
         today=datetime.now()
 
         #====Top level tag =====
@@ -464,13 +468,13 @@ class CMR(object):
             return data
 
 
-    def ingestNetCDFFiles(self, rootDir, ds_short_name):
-        metaData=metaDataTool(self._META_DATA_URL_RESOURCES,self._API_META_DATA_RESOURCES)
-        xmldata=metaData.getMetaData(rootDir=rootDir, ds_short_name=ds_short_name)
+    def ingestNetCDFFiles(self, rootDir, ds_short_name, versionId=1):
+        metaData=metaDataTool()
+        xmldata=metaData.getMetaData(rootDir=rootDir, ds_short_name=ds_short_name, versionId=versionId)
 
-        print xmldata
 
-        #return self.ingestGranule(xmldata)
+
+        return self.ingestGranule(xmldata)
 
 
 
@@ -525,16 +529,20 @@ search_collection_url = https://%(cmr_host)s/search/collections"""
 
 
 if __name__=="__main__":
-    cmr=CMR("../cmr.cfg.example")
-
+    #cmr=CMR("../cmr.cfg.example")
+    metaData = metaDataTool(
+        metaDataURLResources="http://ec2-54-201-117-192.us-west-2.compute.amazonaws.com/api/v2/ghrc_catalog_dev/_table/cm_idims.ds_urls?filter=ds_short_name=",
+        metaDataAPI="&api_key=8736e7dca88416f8c818d57a1e65e0c8b96075b42f911354a32b14b7ef80d317")
+    print metaData.getMetaData(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl", versionId=1)
     #print cmr.searchCollection(concept_id="C1216373824-GHRC")
-    #print cmr.deleteCollection(dataset_id="NRT AMSR2 L2B GLOBAL SWATH GSFC PROFILING ALGORITHM 2010: SURFACE PRECIPITATION, WIND SPEED OVER OCEAN, WATER VAPOR OVER OCEAN AND CLOUD LIQUID WATER OVER OCEAN V0")
+    #print cmr.deleteCollection(dataset_id="GPM GROUND VALIDATION MET ONE RAIN GAUGE PAIRS IFLOODS V2 V2")
+    #print cmr.deleteCollection(dataset_id="GPM Ground Validation NASA EPFL-LTE Parsivel DSD Data Lausanne, Switzerland V1")
     #print cmr.ingestCollection(pathToXMLFile="/home/marouane/pyCMR_python2.7/test-collection.xml")
     #print cmr.isTokenExpired()
-    print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl"))
+    #print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="A2_RainOcn_NRNB", versionId=2))
     #print cmr.ingestGranuleTextFile(pathToTextFile="/home/marouane/Downloads/dataexample.txt")
     #print(cmr.ingestGranule(XMLData="/home/marouane/Desktop/GHRCg__gpmrgnaifld2.xml"))
-    #print cmr.ingestCollection("/home/marouane/pyCMR_python2.7/test-collection.xml")
+    #print cmr.ingestCollection("/home/marouane/Desktop/GHRCc_gpmepfl.xml")
 
 
     #print cmr.ingestGranule("/home/marouane/Documents/xmls/onegranule.xml")

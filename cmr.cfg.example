@@ -1,9 +1,9 @@
 [credentials]
-provider = GHRC
-username = ghrc
-password = Gl0balH@zards
-client_id = ghrc
-echo_token = 9EF16284-C4C2-5B07-26E3-04867A7152EC
+provider = ********************
+username = ********************
+password = ********************
+client_id = ********************
+echo_token = ********************
 
 [request]
 request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
@@ -15,6 +15,6 @@ search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections
 
 [metadata]
-metaData_api_url = http://ec2-54-22.us-west-2.compute.amazonaws.com/api/v2/ghrc_catalog_dev/_table/cm_idims.ds_urls?filter=ds_short_name%%3D
-metaData_api_key=&api_key=8736e7dca88416f8c818d57a1e65e0c8b96075b42f911354a32b14b7ef80d317
+metaData_api_url =
+metaData_api_key=
 
