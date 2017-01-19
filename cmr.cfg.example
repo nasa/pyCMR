@@ -1,9 +1,15 @@
+[restapi]
+rest_host_url = http://localhost:8080/
+wr_api_key = 1020a06e7c68505c463afe91d3c558408b0bccf5254a153ea34a235682d52304
+databasename = ghtc_dev_all
+schema = ghrc
+
 [credentials]
-provider = ********************
-username = ********************
-password = ********************
-client_id = ********************
-echo_token = ********************
+provider = GHRC
+username = ghrc
+password = Gl0balH@zards
+client_id = ghrc
+echo_token = 605290E2-5190-6ED4-2907-A62202F8989D
 
 [request]
 request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
@@ -15,6 +21,6 @@ search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections
 
 [metadata]
-metaData_api_url =
-metaData_api_key=
+metadata_api_url = 
+metadata_api_key = 
 

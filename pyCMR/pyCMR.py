@@ -2,6 +2,9 @@ import json
 import logging
 from hs3_meta_data import metaDataTool
 import os
+from collectionMetadata import CollectionCMRXMLTags
+from granuleMetadata import GranuleCMRXMLTags
+
 import shutil
 from datetime import datetime
 import xml.etree.ElementTree as ET
@@ -13,7 +16,7 @@ except ImportError:
 import requests
 
 from Result import Collection, Granule
-from xmlParser import XmlDictConfig, ComaSeperatedToListJson, ComaSeperatedDataToListJson
+from xmlParser import XmlDictConfig, ComaSeperatedToListJson,ComaSeperatedDataToListJson
 
 
 class CMR(object):
@@ -149,7 +152,11 @@ class CMR(object):
         :param pathToXMLFile:
         :return:  the dataset id
         """
-        tree = ET.parse(pathToXMLFile)
+        if os.path.isfile(pathToXMLFile):
+
+            tree = ET.parse(pathToXMLFile)
+        else:
+            tree=ET.fromstring(pathToXMLFile)
         try:
             return tree.find("DataSetId").text
         except:
@@ -179,14 +186,26 @@ class CMR(object):
         except:
             raise KeyError("Could not find <GranuleUR> tag")
 
-    def ingestCollection(self, pathToXMLFile):
+
+
+
+
+    def ingestCollection(self, XMLData):
         """
         :purpose : ingest the collections using cmr rest api
-        :param pathToXMLFile:
+        :param XMLData: a parameter that holds the XML data that needs to be ingested it can be a file
         :return: the ingest collection request if it is successfully validated
         """
-        data = self._getXMLData(pathToXMLFile=pathToXMLFile)
-        dataset_id = self._getDataSetId(pathToXMLFile=pathToXMLFile)
+
+        if not XMLData:
+            return False
+
+        if os.path.isfile(XMLData):
+            data = self._getXMLData(pathToXMLFile=XMLData)
+        else:
+            data=XMLData
+
+        dataset_id = self._getDataSetId(pathToXMLFile=XMLData)
         url = self._INGEST_URL + self._PROVIDER + "/collections/" + dataset_id
         validationRequest = self._validateCollection(data=data, dataset_id=dataset_id)
         if validationRequest.ok:  # if the collection is valid
@@ -200,7 +219,7 @@ class CMR(object):
             raise ValueError("Collection failed to validate:\n{}".format(validationRequest.content))
 
     def updateCollection(self, pathToXMLFile):
-        return self.ingestCollection(pathToXMLFile=pathToXMLFile)
+        return self.ingestCollection(XMLData=pathToXMLFile)
 
     def deleteCollection(self, dataset_id):
         """
@@ -229,6 +248,9 @@ class CMR(object):
         else:
             raise ValueError("Granule failed to validate:\n{}".format(validateGranuleRequest.content))
 
+
+
+
     def ingestGranule(self, XMLData):
         """
         :purpose : ingest granules using cmr rest api
@@ -237,6 +259,9 @@ class CMR(object):
         """
 
         response=[]
+        if not XMLData:
+            print "Error occurred while ingesting this granule; Please check if the granule exists  and if you have the right to ingest to CMR"
+            return False
         if os.path.isfile(XMLData):
             tree = ET.parse(XMLData)
             root = tree.getroot()
@@ -263,6 +288,13 @@ class CMR(object):
 
 
 
+
+
+    def generateCMRXMLTags(self, top, data):
+        for key, value in data.items():
+            child=ET.Element(top,key)
+            child.text=value
+        return top
 
 
 
@@ -435,6 +467,12 @@ class CMR(object):
 
 
 
+
+
+
+
+
+
     def updateGranule(self, pathToXMLFile):
         return self.ingestGranule(XMLData=pathToXMLFile)
 
@@ -529,15 +567,42 @@ search_collection_url = https://%(cmr_host)s/search/collections"""
 
 
 if __name__=="__main__":
-    #cmr=CMR("../cmr.cfg.example")
+    cmr=CMR("../cmr.cfg.example")
     metaData = metaDataTool(
         metaDataURLResources="http://ec2-54-201-117-192.us-west-2.compute.amazonaws.com/api/v2/ghrc_catalog_dev/_table/cm_idims.ds_urls?filter=ds_short_name=",
         metaDataAPI="&api_key=8736e7dca88416f8c818d57a1e65e0c8b96075b42f911354a32b14b7ef80d317")
-    print metaData.getMetaData(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl", versionId=1)
+    #print metaData.getMetaData(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl", versionId=1)
     #print cmr.searchCollection(concept_id="C1216373824-GHRC")
     #print cmr.deleteCollection(dataset_id="GPM GROUND VALIDATION MET ONE RAIN GAUGE PAIRS IFLOODS V2 V2")
     #print cmr.deleteCollection(dataset_id="GPM Ground Validation NASA EPFL-LTE Parsivel DSD Data Lausanne, Switzerland V1")
-    #print cmr.ingestCollection(pathToXMLFile="/home/marouane/pyCMR_python2.7/test-collection.xml")
+    ghrcc = CollectionCMRXMLTags(configFilePath="../cmr.cfg.example")
+    cXMLData=ghrcc.generateCollectionXMLToIngest(ds_short_name="msut4jj")
+
+    #print cXMLData
+    #print cmr.ingestCollection(XMLData=cXMLData)
+
+
+    #ghrcg=GranuleCMRXMLTags(configFilePath="../cmr.cfg.example")
+    #gXMLData = ghrcg.generateGranuleXMLToIngest(granule_name="tc4_ampr_20070806_ghrc_v2d.txt.gz")
+    #print gXMLData
+    #XMLsData=ghrcg.getMultipleGranulesXML(ds_short_name='gpmepfl')
+
+
+    #print XMLsData
+
+    #for ele in XMLsData:
+    #    print cmr.ingestGranule(XMLData=ele)
+
+
+
+
+    #cmr.deleteCollection(dataset_id='GPM Ground Validation High Altitude Imaging Wind and Rain Airborne Profiler (HIWRAP) IPHEx')
+    #print cXMLData
+    #print gXMLData
+    #print cmr.searchCollection(ShortName='gpmepfl')
+    #print len(cmr.searchGranule(ShortName='gpmepfl', limit=250))
+
+    #print cmr.ingestGranule(XMLData=gXMLData)
     #print cmr.isTokenExpired()
     #print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="A2_RainOcn_NRNB", versionId=2))
     #print cmr.ingestGranuleTextFile(pathToTextFile="/home/marouane/Downloads/dataexample.txt")

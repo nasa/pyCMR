@@ -20,7 +20,7 @@ Requirements
   * Python 2.7/3.2+"""
 
 here = os.path.abspath(os.path.dirname(__file__))
-__version__ = '0.1.0'
+__version__ = '0.1.2'
 
 # get the dependencies and installs
 with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
