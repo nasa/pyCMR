@@ -6,15 +6,18 @@ The pyCMR platform is licensed under the Apache License, Version 2.0 (the "Licen
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 '''
-from itertools import izip
-
-
+try:
+    from future_builtins import zip
+except ImportError: # not 2.6+ or is 3.x
+    try:
+        from itertools import izip as zip # < 2.5 or 3.x
+    except ImportError:
+        pass
 
 def ComaSeperatedToListJson(pathToFile="data_example", data=None):
     #py=GHRCCatalog("configFile.cfg")
 
     fileLines=open(pathToFile)
-
 
     lines=[]
     listJson=[]
@@ -34,7 +37,6 @@ def ComaSeperatedToListJson(pathToFile="data_example", data=None):
         listJson.append(args)
     return listJson
 
-
 def ComaSeperatedDataToListJson(data):
     lines = []
     listJson = []
@@ -49,12 +51,6 @@ def ComaSeperatedDataToListJson(data):
             # print post['status'], post['result']
         listJson.append(args)
     return listJson
-
-
-
-
-
-
 
 class XmlListConfig(list):
     """
@@ -71,7 +67,6 @@ class XmlListConfig(list):
                 text = element.text.strip()
                 if text:
                     self.append(text)
-
 
 class XmlDictConfig(dict):
     """

@@ -10,10 +10,9 @@ import sys
 import requests
 import urllib
 
-from GenerateMetadata import GenerateMetadata
+from .GenerateMetadata import GenerateMetadata
 
 import xml.etree.ElementTree as ET
-
 
 class CollectionCMRXMLTags(GenerateMetadata):
 
@@ -198,7 +197,7 @@ class CollectionCMRXMLTags(GenerateMetadata):
         data = self.getDataFromDatabase(tableName="CMRCollectionView", ShortName=ds_short_name)
 
         if not data:
-            print "Error occurred while ingesting this dataset; Please check if the dataset exists and if you have the right to ingest to CMR"
+            print("Error occurred while ingesting this dataset; Please check if the dataset exists and if you have the right to ingest to CMR")
             return False
 
         data = data[0]
@@ -430,7 +429,7 @@ if __name__ == "__main__":
     data= ghrc.generateCollectionXMLToIngest(ds_short_name=sys.argv[1])
 
 
-    print data
+    print(data)
     # print ghrc.getData(tableName="ds_url_descriptions")
     # print ghrc.getPlatformsCMRtag(short_name='GOES-8')
     # print ghrc.getRestAPIURL("ds_info")
