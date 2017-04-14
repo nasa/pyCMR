@@ -504,9 +504,8 @@ if __name__=="__main__":
 
 
 
-    print cmr.searchCollection(ShortName='gpmepfl')
+    print(cmr.searchCollection(ShortName='gpmepfl'))
     #print len(cmr.searchGranule(ShortName='gpmepfl', limit=250))
-
     #print cmr.ingestGranule(XMLData=gXMLData)
     #print cmr.isTokenExpired()
     #print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="A2_RainOcn_NRNB", versionId=2))
@@ -516,5 +515,5 @@ if __name__=="__main__":
 
 
     #print cmr.ingestGranule("/home/marouane/Documents/xmls/onegranule.xml")
-    print cmr.ingestCollection("/Path/To?XML/File")
+    print(cmr.ingestCollection("/Path/To?XML/File"))
 
