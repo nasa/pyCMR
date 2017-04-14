@@ -1,0 +1,26 @@
+[restapi]
+REST_HOST_URL = ************************/
+WR_API_KEY = ********************************
+DATABASENAME = *************
+SCHEMA = ********
+
+[credentials]
+provider = ****
+username = ******
+password = ******
+client_id = ******
+echo_token = ******
+
+[request]
+request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
+content_type = application/echo10+xml
+cmr_host = cmr.uat.earthdata.nasa.gov
+ingest_url = https://%(cmr_host)s/ingest/providers/
+page_size = 50
+search_granule_url = https://%(cmr_host)s/search/granules
+search_collection_url = https://%(cmr_host)s/search/collections
+
+[metadata]
+metadata_api_url = 
+metadata_api_key = 
+
