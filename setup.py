@@ -1,66 +1,83 @@
-#!/usr/bin/env python
-'''
-Copyright 2017, United States Government, as represented by the Administrator of the National Aeronautics and Space Administration. All rights reserved.
+# Copyright 2017, United States Government, as represented by the Administrator 
+# of the National Aeronautics and Space Administration. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-The pyCMR platform is licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+import os.path
+from setuptools import find_packages, setup
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+# Package data
+# ------------
+_author = 'Abdelhak Marouane'
+_author_email = 'am0089@uah.edu'
+_classifiers = [
+    'Environment :: Console',
+    'Framework :: Pytest',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Information Technology',
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering',
+    'Development Status :: 3 - Alpha',
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.5',
+    'Topic :: Internet :: WWW/HTTP',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+_description = 'pyCMR Python API'
+_download_url = 'http://pypi.python.org/pypi/pyCMR/'
+_requirements = ["requests"]
+_keywords = ['dataset', 'granule', 'nasa', 'CMR']
+_license = 'Apache License, Version 2.0'
+_long_description = 'Python client API for interacting with the NASA CMR API'
+_name = 'pyCMR'
+_namespaces = []
+_test_suite = 'pyCMR.tests'
+_url = 'https://github.com/ghrcdaac/cmr'
+_version = '0.1.2'
+_zip_safe = False
 
-'''
-import os
-from codecs import open
-from setuptools import setup, find_packages
-
-longDescription = """pyCMR
-===========
+# Setup Metadata
+# --------------
 
 
- * Created by: Manil Maskey (2016)
- * License:
+def _read(*rnames):
+    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-----
-
-~~~~~~~~~~~~
-Requirements
-~~~~~~~~~~~~
-
-  * Python 2.7/3.2+"""
-
-here = os.path.abspath(os.path.dirname(__file__))
-__version__ = '0.1.2'
-
-# get the dependencies and installs
-with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
-    all_reqs = f.read().split('\n')
-
-install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
-dependency_links = [x.strip().replace('git+', '') for x in all_reqs if 'git+' not in x]
-
+_header = '*' * len(_name) + '\n' + _name + '\n' + '*' * len(_name)
+_longDescription = '\n\n'.join([
+    _header,
+    _read('README.md')
+])
+open('doc.txt', 'w').write(_longDescription)
 
 setup(
-    name='pyCMR',
-    version=__version__,
-    author='Abdelhak Marouane',
-    author_email='am0089@uah.edu',
-    description='client API to ingest using CMR API',
-    long_description=longDescription,
-    url='https://github.com/nasa-cumulus/cmr',
-    license='',
-    classifiers=[
-        'Framework :: Pytest',
-        'Topic :: Scientific/Engineering :: GIS',
-        'Topic :: Scientific/Engineering',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: Freeware',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
-    ],
-    packages=find_packages(exclude=['docs', 'tests*']),
+    author=_author,
+    author_email=_author_email,
+    classifiers=_classifiers,
+    description=_description,
+    download_url=_download_url,
     include_package_data=True,
-    install_requires=install_requires,
-    dependency_links=dependency_links,
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest']
+    install_requires=_requirements,
+    keywords=_keywords,
+    license=_license,
+    long_description=_long_description,
+    name=_name,
+    namespace_packages=_namespaces,
+    packages=find_packages(),
+    test_suite=_test_suite,
+    url=_url,
+    version=_version,
+    zip_safe=_zip_safe,
 )
-

@@ -9,10 +9,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 import requests
 import urllib
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 import xml.etree.ElementTree as ET
-
 
 class GenerateMetadata():
     def __init__(self, configFilePath="configFile.cfg"):
@@ -73,7 +72,7 @@ class GenerateMetadata():
         while condition:
             data = requests.get(url=url+'&orderby='+orderby+'&offset='+str(offset))
             if not data.ok:
-                print data.content
+                print(data.content)
                 return data.reason
             data = data.json()
             for ele in data['resource']:
@@ -82,7 +81,7 @@ class GenerateMetadata():
 
             try:
                 offset = data['meta']['next']
-                print offset
+                print(offset)
 
             except:
                 condition = False

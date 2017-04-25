@@ -7,7 +7,7 @@ The pyCMR platform is licensed under the Apache License, Version 2.0 (the "Licen
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 '''
-import Queue
+from queue import Queue
 import errno
 import fnmatch
 import gzip
@@ -21,13 +21,17 @@ import tempfile
 import threading
 from datetime import datetime
 import xml.etree.ElementTree as ET
-from read_variable_nc import read_variable_nc
+from .read_variable_nc import read_variable_nc
 import requests
-from read_eol_sf import read_eol_sf
-from itertools import izip
+from .read_eol_sf import read_eol_sf
+try:
+    from future_builtins import zip
+except ImportError: # not 2.6+ or is 3.x
+    try:
+        from itertools import izip as zip # < 2.5 or 3.x
+    except ImportError:
+        pass
 import sys
-
-
 
 try:
     from configparser import ConfigParser
@@ -36,19 +40,15 @@ except ImportError:
 # The root of where ds_url refers to.
 # The 'path=' metadata for files will be relative to this directory
 
-
 # The file patterns to look at and the functions to parse them followed by arguments for the parser
 
-
-
-class metaDataTool:
+class MetaDataTool:
     def __init__(self, metaDataURLResources=None, metaDataAPI=None):
         """
 
         :param metaDataURLResources: api from where to fetch granule online resources
         :param metaDataAPI: api key providing the permission to fetch the resources
         """
-
         self.defaultDateTimeFormat = "%Y-%m-%dT%H:%M:%SZ"
         self.defaultFieldOrder = [ "host","env","project","ds","inv","file","path","size","start","end",
                       "browse","checksum","NLat","SLat","WLon","ELon" ]
@@ -59,7 +59,6 @@ class metaDataTool:
         except:
             self._META_DATA_URL_RESOURCES=metaDataURLResources
             self._API_META_DATA_RESOURCES=metaDataAPI
-
 
     def __fileParserPostparseGenerator(self,patternsToParsers, relpath, files):
         for filename in files:
@@ -160,10 +159,6 @@ class metaDataTool:
         tf.close()
         return r
 
-
-
-
-
     def processAvapsData(self, rootDir):
         patternsToParsers = (
             ("*.eol", (read_eol_sf,)),
@@ -192,7 +187,6 @@ class metaDataTool:
                         postParse = None
                     yield os.path.join(relpath, filename), patternToParser[1], postParse
                     break
-
 
     def _findFiles(self, root, patternsToParsers, subdirs=None):
         stripLen = len(root) + 1  # Used to strip top of path and trailing '/'
@@ -245,7 +239,6 @@ class metaDataTool:
                 r = parserAndArgs[0](filename, fp, *parserAndArgs[1:])
         q.put(r)
 
-
     def _inspectFile(self, filename, parserAndArgs, patternsToParsers):
         if tarfile.is_tarfile(filename) and not parserAndArgs:
             r = self._inspectTarFile(filename, patternsToParsers)
@@ -282,7 +275,6 @@ class metaDataTool:
             r = q.get()
         r["checksum"] = sha1.hexdigest()
         return r
-
 
     def getMetadataList(self,rootDir,
         patternsToParsers,
@@ -374,12 +366,7 @@ class metaDataTool:
             pass
         return dataToReturn
 
-
-
-
     def processIphexHiwrapeData(self, rootDir):
-
-
         # The root of where ds_url refers to.
         # The 'path=' metadata for files will be relative to this directory
 
@@ -395,8 +382,6 @@ class metaDataTool:
         static_data["host"] = socket.gethostname().split(".")[0]  # Only the part before the first '.'
 
         static_data["browse"] = "N"
-
-
         return self.getMetadataList(rootDir, patternsToParsers, static_data)
 
     def _getdata(self, data, keyword):
@@ -405,11 +390,6 @@ class metaDataTool:
         except:
 
             return None
-
-
-
-
-
 
     def fromJsonToXML(self, data, ds_short_name,versionId=1):
         head=ET.Element("Granules")
@@ -455,8 +435,6 @@ class metaDataTool:
 
 
             # =============Spatial tag ========================#
-
-
             Spatial = ET.Element("Spatial")
             HorizontalSpatialDomain = ET.SubElement(Spatial, "HorizontalSpatialDomain")
             Geometry = ET.SubElement(HorizontalSpatialDomain, "Geometry")
@@ -476,7 +454,6 @@ class metaDataTool:
             # ===================OnlineAccessURLs tag =================#
 
             #===========================OnlineResources tag ===============#
-
             OnlineAccessURLs = ET.Element("OnlineAccessURLs")
             OnlineResources=ET.Element("OnlineResources")
 
@@ -500,12 +477,8 @@ class metaDataTool:
                     URL.text = urlData['url'] + ele['granule_name']
                     top.append(OnlineAccessURLs)
 
-
-
             if len(metaDataURLS):
                 top.append(OnlineResources)
-
-
 
             # ===================Ordorable tag =================#
             Orderable = ET.SubElement(top, "Orderable")
@@ -536,18 +509,14 @@ class metaDataTool:
 
         return self.fromJsonToXML(commaSeperatedFile,ds_short_name, versionId=versionId)
 
-
     def getMetaDataURLS(self,ds_short_name):
         urls=[]
         if None in [self._META_DATA_URL_RESOURCES,self._API_META_DATA_RESOURCES]:
             #If the url to fetch online resources is not provided return empty list
             return []
 
-
         url=self._META_DATA_URL_RESOURCES+ds_short_name+self._API_META_DATA_RESOURCES
-        print url
-
-
+        print(url)
 
         try:
             #If the link provided is broken return the empty list
@@ -561,5 +530,3 @@ class metaDataTool:
             urls.append({'url': ele['ds_url'], 'url_type': ele['ds_url_type'], 'description': ele['ds_url_comments']})
 
         return urls
-
-

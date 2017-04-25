@@ -6,13 +6,12 @@ The pyCMR platform is licensed under the Apache License, Version 2.0 (the "Licen
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 '''
-
 import json
 import logging
-from hs3_meta_data import metaDataTool
+from .hs3_meta_data import MetaDataTool
 import os
-from collectionMetadata import CollectionCMRXMLTags
-from granuleMetadata import GranuleCMRXMLTags
+from .collectionMetadata import CollectionCMRXMLTags
+from .granuleMetadata import GranuleCMRXMLTags
 
 import shutil
 from datetime import datetime
@@ -24,9 +23,8 @@ except ImportError:
 
 import requests
 
-from Result import Collection, Granule
-from xmlParser import XmlDictConfig, ComaSeperatedToListJson,ComaSeperatedDataToListJson
-
+from .Result import Collection, Granule
+from .xmlParser import XmlDictConfig, ComaSeperatedToListJson,ComaSeperatedDataToListJson
 
 class CMR(object):
     def __init__(self, configFilePath=''):
@@ -80,9 +78,6 @@ class CMR(object):
 
         self._ECHO_TOKEN = self.config.get("credentials", "echo_token")
 
-
-
-
         self._createSession()
         if not self.config.get('credentials', 'ECHO_TOKEN'):
             self._generateNewToken()
@@ -124,7 +119,6 @@ class CMR(object):
                 break
             else:
                 page_num += 1
-
         return results
 
     def searchGranule(self, limit=100, **kwargs):
@@ -152,7 +146,6 @@ class CMR(object):
         if (len(putGranule.text.split('<error>')) > 1):  # if there is an error in the request
             if any(word in putGranule.text for word in list_):
                 return True
-
         return False
 
     def _getDataSetId(self, pathToXMLFile):
@@ -194,10 +187,6 @@ class CMR(object):
             return data.find("GranuleUR").text
         except:
             raise KeyError("Could not find <GranuleUR> tag")
-
-
-
-
 
     def ingestCollection(self, XMLData):
         """
@@ -257,9 +246,6 @@ class CMR(object):
         else:
             raise ValueError("Granule failed to validate:\n{}".format(validateGranuleRequest.content))
 
-
-
-
     def ingestGranule(self, XMLData):
         """
         :purpose : ingest granules using cmr rest api
@@ -269,15 +255,13 @@ class CMR(object):
 
         response=[]
         if not XMLData:
-            print "Error occurred while ingesting this granule; Please check if the granule exists  and if you have the right to ingest to CMR"
+            print("Error occurred while ingesting this granule; Please check if the granule exists  and if you have the right to ingest to CMR")
             return False
         if os.path.isfile(XMLData):
             tree = ET.parse(XMLData)
             root = tree.getroot()
         else:
             root = ET.fromstring(XMLData)
-
-
 
         for data in root.iter('Granule'):
             granule_ur = self._getGranuleUR( data=data)
@@ -286,28 +270,17 @@ class CMR(object):
 
         return response
 
-
-
     def _getdata(self, data, keyword):
         try :
             return data[keyword]
         except:
-
             return None
-
-
-
-
 
     def generateCMRXMLTags(self, top, data):
         for key, value in data.items():
             child=ET.Element(top,key)
             child.text=value
         return top
-
-
-
-
 
     def fromJsonToXML(self, data):
         """
@@ -329,8 +302,6 @@ class CMR(object):
         DataSetId = ET.SubElement(Collection, "DataSetId")
         DataSetId.text = self._getdata(data, 'DataSetId')
 
-
-
         # =============DataGranule tag ========================#
         DataGranule = ET.Element("DataGranule")
         SizeMBDataGranule = ET.SubElement(DataGranule, "SizeMBDataGranule")
@@ -343,9 +314,6 @@ class CMR(object):
             SizeMBDataGranule.text= str(int(SizeMBDataGranule.text)* 10E-6) # Convert to MiB units
             top.append(DataGranule)
 
-
-
-
         # =============Temporal tag ========================#
         Temporal = ET.Element("Temporal")
         RangeDateTime=ET.SubElement(Temporal,"RangeDateTime")
@@ -357,8 +325,6 @@ class CMR(object):
         top.append(Temporal)
 
         #=============Spatial tag ========================#
-
-
         Spatial=ET.Element("Spatial")
         HorizontalSpatialDomain=ET.SubElement(Spatial, "HorizontalSpatialDomain")
         Geometry=ET.SubElement(HorizontalSpatialDomain, "Geometry")
@@ -374,27 +340,14 @@ class CMR(object):
         if None not in [SouthBoundingCoordinate.text,EastBoundingCoordinate.text,WestBoundingCoordinate.text,NorthBoundingCoordinate.text]:
             top.append(Spatial)
 
-
-
-
-
-
-
-
-
-
-
         Orderable = ET.SubElement(top, "Orderable")
         Orderable.text = "true"
-
         return ET.tostring(top)
 
     def ingestIphexHiwrapeData(self, rootDir):
-        meta = metaDataTool()
+        meta = MetaDataTool()
         data = meta.processIphexHiwrapeData(rootDir=rootDir)
         self.ingestGranuleTextFile(data=data)
-
-
 
     def ingestGranuleTextFile(self, pathToTextFile=None, data=None):
         """
@@ -418,12 +371,7 @@ class CMR(object):
             print(xmldata)
 
             data = self.__ingestGranuleData(data=xmldata, granule_ur=ele['granule_name']) # ingest each granule
-
-
             returnList.append(data)
-
-
-
 
             if (data.status_code >= 400): # if there is an error during the ingestion
                 errorCount += 1 # increment the counter
@@ -473,15 +421,6 @@ class CMR(object):
         else:
             raise ValueError("New Token failed to be generated:\n{}".format(response.content))
 
-
-
-
-
-
-
-
-
-
     def updateGranule(self, pathToXMLFile):
         return self.ingestGranule(XMLData=pathToXMLFile)
 
@@ -495,7 +434,6 @@ class CMR(object):
 
         url = self._INGEST_URL + self._PROVIDER + "/granules/" + granule_ur
         removeGranule = self.session.delete(url)
-
         return removeGranule.content
 
     def _getIPAddress(self):
@@ -514,23 +452,10 @@ class CMR(object):
             data = xml_file.read()
             return data
 
-
     def ingestNetCDFFiles(self, rootDir, ds_short_name, versionId=1):
-        metaData=metaDataTool()
+        metaData=MetaDataTool()
         xmldata=metaData.getMetaData(rootDir=rootDir, ds_short_name=ds_short_name, versionId=versionId)
-
-
-
         return self.ingestGranule(xmldata)
-
-
-
-
-
-
-
-
-
 
     def _generateNewToken(self):
         """
@@ -570,14 +495,8 @@ page_size = 50
 search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections"""
 
-
-
-
-
-
 if __name__=="__main__":
     cmr=CMR("Path/To/Conf/File")
-
     #print metaData.getMetaData(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl", versionId=1)
     #print cmr.searchCollection(concept_id="C1216373824-GHRC")
     #print cmr.deleteCollection(dataset_id="GPM GROUND VALIDATION MET ONE RAIN GAUGE PAIRS IFLOODS V2 V2")
@@ -585,9 +504,8 @@ if __name__=="__main__":
 
 
 
-    print cmr.searchCollection(ShortName='gpmepfl')
+    print(cmr.searchCollection(ShortName='gpmepfl'))
     #print len(cmr.searchGranule(ShortName='gpmepfl', limit=250))
-
     #print cmr.ingestGranule(XMLData=gXMLData)
     #print cmr.isTokenExpired()
     #print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="A2_RainOcn_NRNB", versionId=2))
@@ -597,5 +515,5 @@ if __name__=="__main__":
 
 
     #print cmr.ingestGranule("/home/marouane/Documents/xmls/onegranule.xml")
-    print cmr.ingestCollection("/Path/To?XML/File")
+    print(cmr.ingestCollection("/Path/To?XML/File"))
 
