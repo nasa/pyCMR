@@ -16,6 +16,7 @@
 import os.path
 from setuptools import find_packages, setup
 
+
 # Package data
 # ------------
 _author = 'Abdelhak Marouane'
@@ -70,6 +71,8 @@ setup(
     download_url=_download_url,
     include_package_data=True,
     install_requires=_requirements,
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     keywords=_keywords,
     license=_license,
     long_description=_long_description,

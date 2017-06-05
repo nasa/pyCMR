@@ -1,15 +1,10 @@
-[restapi]
-REST_HOST_URL = ************************/
-WR_API_KEY = ********************************
-DATABASENAME = *************
-SCHEMA = ********
-
 [credentials]
-provider = ****
-username = ******
-password = ******
-client_id = ******
-echo_token = ******
+provider = GHRC
+username = ghrc
+password = Gl0balH@zards
+client_id = ghrc
+echo_token = 00CE7FF3-AFEF-0F39-C5E7-F5BD2CE344F2
+tmpfilenamepath = /tmp/cmrToken5
 
 [request]
 request_token_url = https://api-test.echo.nasa.gov/echo-rest/tokens/
@@ -19,8 +14,4 @@ ingest_url = https://%(cmr_host)s/ingest/providers/
 page_size = 50
 search_granule_url = https://%(cmr_host)s/search/granules
 search_collection_url = https://%(cmr_host)s/search/collections
-
-[metadata]
-metadata_api_url = 
-metadata_api_key = 
 

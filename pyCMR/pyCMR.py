@@ -8,10 +8,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 '''
 import json
 import logging
-from .hs3_meta_data import MetaDataTool
 import os
-from .collectionMetadata import CollectionCMRXMLTags
-from .granuleMetadata import GranuleCMRXMLTags
+
 
 import shutil
 from datetime import datetime
@@ -122,6 +120,13 @@ class CMR(object):
         return results
 
     def searchGranule(self, limit=100, **kwargs):
+        """
+            Search the CMR granules
+
+            :param limit: limit of the number of results
+            :param kwargs: search parameters
+            :return: list of results (<Instance of Result>)
+            """
         results = self._get_search_results(url=self._SEARCH_GRANULE_URL, limit=limit, **kwargs)
         return [Granule(result) for result in results][:limit]
 
@@ -203,7 +208,8 @@ class CMR(object):
         else:
             data=XMLData
 
-        dataset_id = self._getDataSetId(pathToXMLFile=XMLData)
+
+        dataset_id = self._getDataSetId(pathToXMLFile=data)
         url = self._INGEST_URL + self._PROVIDER + "/collections/" + dataset_id
         validationRequest = self._validateCollection(data=data, dataset_id=dataset_id)
         if validationRequest.ok:  # if the collection is valid
@@ -255,7 +261,7 @@ class CMR(object):
 
         response=[]
         if not XMLData:
-            print("Error occurred while ingesting this granule; Please check if the granule exists  and if you have the right to ingest to CMR")
+            logging.error("Error occurred while ingesting this granule; Please check if the granule exists  and if you have the right to ingest to CMR")
             return False
         if os.path.isfile(XMLData):
             tree = ET.parse(XMLData)
@@ -268,6 +274,8 @@ class CMR(object):
 
             response.append(self.__ingestGranuleData(data=ET.tostring(data), granule_ur=granule_ur))
 
+        if len(response)==1 :
+            return response[0]
         return response
 
     def _getdata(self, data, keyword):
@@ -344,10 +352,6 @@ class CMR(object):
         Orderable.text = "true"
         return ET.tostring(top)
 
-    def ingestIphexHiwrapeData(self, rootDir):
-        meta = MetaDataTool()
-        data = meta.processIphexHiwrapeData(rootDir=rootDir)
-        self.ingestGranuleTextFile(data=data)
 
     def ingestGranuleTextFile(self, pathToTextFile=None, data=None):
         """
@@ -452,10 +456,7 @@ class CMR(object):
             data = xml_file.read()
             return data
 
-    def ingestNetCDFFiles(self, rootDir, ds_short_name, versionId=1):
-        metaData=MetaDataTool()
-        xmldata=metaData.getMetaData(rootDir=rootDir, ds_short_name=ds_short_name, versionId=versionId)
-        return self.ingestGranule(xmldata)
+
 
     def _generateNewToken(self):
         """

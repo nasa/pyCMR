@@ -15,10 +15,16 @@ from ..pyCMR import CMR, Collection, Granule
 class TestCMRIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cmr = CMR('cmr.cfg')
+        pathToCurrentFile = os.path.dirname(__file__)
+        os.chdir(os.path.dirname(pathToCurrentFile))  # change OS path to working dir
+        os.chdir('..')
+        configFilePath = os.path.abspath(os.curdir) + "/cmr.cfg.example"
 
-        cls._test_collection_path = os.path.join('.', 'tests', 'fixtures', 'test-collection.xml')
-        cls._test_granule_path = os.path.join('.', 'tests', 'fixtures', 'test-granule.xml')
+
+        cls.cmr = CMR(configFilePath)
+
+        cls._test_collection_path = os.path.abspath(os.curdir) + "/pyCMR/tests/fixtures/test-collection.xml" #os.path.join(os.curdir, 'tests', 'fixtures', 'test-collection.xml')
+        cls._test_granule_path = os.path.abspath(os.curdir) + "/pyCMR/tests/fixtures/test-granule.xml" #os.path.join(os.curdir, 'tests', 'fixtures', 'test-granule.xml')
         cls._test_collection_name = 'PYCMR TEST COLLECTION'
         cls._test_granule_name = 'PYCMR_TEST_GRANULE.hd5'
 
@@ -70,29 +76,30 @@ class TestCMRIntegration(unittest.TestCase):
         self.assertTrue(parsed.tag == 'result')
 
     def test_monolith(self):
-        '''
-        Since these are order-sensitive integration tests,
-        wrap them in a monolithic test, so that they run in the proper order
-        and stop after a single failure (without having to specify `failfast`)
-
-        https://stackoverflow.com/questions/5387299/python-unittest-testcase-execution-order
-        '''
-        for test_name in [
-            'collection_search',
-            'granule_search',
-            'collection_ingest',
-            'granule_ingest',
-            'collection_update',
-            'granule_update',
-            'granule_delete',
-            'collection_delete'
-        ]:
-            test = getattr(self, test_name)
-            test()
+         '''
+         Since these are order-sensitive integration tests,
+         wrap them in a monolithic test, so that they run in the proper order
+         and stop after a single failure (without having to specify `failfast`)
+    
+         https://stackoverflow.com/questions/5387299/python-unittest-testcase-execution-order
+         '''
+    
+         for test_name in [
+             'collection_search',
+             'granule_search',
+             'collection_ingest',
+             'granule_ingest',
+             'collection_update',
+             'granule_update',
+             'granule_delete',
+             'collection_delete'
+         ]:
+             test = getattr(self, test_name)
+             test()
 
     def test_search_limit(self):
-        ''' Make sure that the correct number of items are returned by searches '''
-        results = self.cmr.searchCollection(limit=3)
-        self.assertTrue(len(results) == 3)
-        results = self.cmr.searchGranule(limit=91)
-        self.assertTrue(len(results) == 91)
+         ''' Make sure that the correct number of items are returned by searches '''
+         results = self.cmr.searchCollection(limit=3)
+         self.assertTrue(len(results) == 3)
+         results = self.cmr.searchGranule(limit=91)
+         self.assertTrue(len(results) == 91)
