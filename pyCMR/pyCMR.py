@@ -31,7 +31,7 @@ class CMR(object):
         These con
         """
         self.config = ConfigParser()
-        if os.path.isfile(configFilePath) and os.access(configFilePath, os.R_OK | os.W_OK):
+        if os.path.isfile(configFilePath) and os.access(configFilePath, os.R_OK ):
             # Open the config file as normal
             self.config.read(configFilePath)
             self.configFilePath = configFilePath
@@ -60,7 +60,7 @@ class CMR(object):
             self.config.write(open(self.configFilePath, 'w'))
             logging.info("Config file created, at {}".format(new_config_path))
         else:
-            raise IOError("The config file can't be opened for reading/writing")
+            raise IOError("The config file can't be opened for reading")
 
         self._PAGE_SIZE = self.config.getint("request", "page_size")
         self._SEARCH_GRANULE_URL = self.config.get("request", "search_granule_url")
