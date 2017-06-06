@@ -84,12 +84,7 @@ class TestCMRIntegration(unittest.TestCase):
          for test_name in [
              'collection_search',
              'granule_search',
-             'collection_ingest',
-             'granule_ingest',
-             'collection_update',
-             'granule_update',
-             'granule_delete',
-             'collection_delete'
+             
          ]:
              test = getattr(self, test_name)
              test()
