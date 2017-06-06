@@ -80,10 +80,16 @@ class TestCMRIntegration(unittest.TestCase):
     
          https://stackoverflow.com/questions/5387299/python-unittest-testcase-execution-order
          '''
-    
+
          for test_name in [
              'collection_search',
-             'granule_search'
+             'granule_search',
+             'collection_ingest',
+             'granule_ingest',
+             'collection_update',
+             'granule_update',
+             'granule_delete',
+             'collection_delete'
          ]:
              test = getattr(self, test_name)
              test()
