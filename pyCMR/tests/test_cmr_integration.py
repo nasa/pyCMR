@@ -15,10 +15,7 @@ from ..pyCMR import CMR, Collection, Granule
 class TestCMRIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        pathToCurrentFile = os.path.dirname(__file__)
-        os.chdir(os.path.dirname(pathToCurrentFile))  # change OS path to working dir
-        os.chdir('..')
-        configFilePath = os.path.abspath(os.curdir) + "/cmr.cfg"
+        configFilePath = "cmr.cfg"
 
 
         cls.cmr = CMR(configFilePath)
