@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <Granule>
+      <GranuleUR>PYCMR_TEST_GRANULE.hd5</GranuleUR>
+      <InsertTime>2015-08-19T11:29:53Z</InsertTime>
+      <LastUpdate>2016-06-19T11:29:53Z</LastUpdate>
+      <DeleteTime>2016-09-02T23:59:59.999Z</DeleteTime>
+      <Collection>
+        <ShortName>PYCMR_TEST</ShortName>
+        <VersionId>0</VersionId>
+      </Collection>
+      <DataGranule>
+        <DayNightFlag>DAY</DayNightFlag>
+        <ProductionDateTime>2015-08-19T11:29:53Z</ProductionDateTime>
+        <LocalVersionId>R00</LocalVersionId>
+      </DataGranule>
+      <PGEVersionClass>
+        <PGEName>RainOcean</PGEName>
+        <PGEVersion>00</PGEVersion>
+      </PGEVersionClass>
+      <Temporal>
+        <RangeDateTime>
+          <BeginningDateTime>2015-08-19T09:26:22Z</BeginningDateTime>
+          <EndingDateTime>2015-08-19T10:13:35Z</EndingDateTime>
+        </RangeDateTime>
+      </Temporal>
+      <OrbitCalculatedSpatialDomains>
+        <OrbitCalculatedSpatialDomain>
+          <OrbitalModelName>WRS-2</OrbitalModelName>
+          <StartOrbitNumber>17311</StartOrbitNumber>
+          <StopOrbitNumber>17312</StopOrbitNumber>
+          <EquatorCrossingLongitude>54.953</EquatorCrossingLongitude>
+          <EquatorCrossingDateTime>2015-08-19T09:51:15Z</EquatorCrossingDateTime>
+        </OrbitCalculatedSpatialDomain>
+      </OrbitCalculatedSpatialDomains>
+      <MeasuredParameters>
+        <MeasuredParameter>
+          <ParameterName>Precipitation</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Precipitation rate</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Cloud liquid water</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Cloud precipitable water</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Water vapor</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Water vapor profiles</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Precipitable water</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Winds speed / wind direction</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Surface winds</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Convective precipitation rate</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Rain rate</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Rain water</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Ice water</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Sea surface wind speed</ParameterName>
+        </MeasuredParameter>
+        <MeasuredParameter>
+          <ParameterName>Liquid water path</ParameterName>
+        </MeasuredParameter>
+      </MeasuredParameters>
+      <AdditionalAttributes>
+        <AdditionalAttribute>
+          <Name>identifier_product_doi</Name>
+          <Values>
+            <Value>10.5067/AMSR2/A2_RainOcn_NRT</Value>
+          </Values>
+        </AdditionalAttribute>
+        <AdditionalAttribute>
+          <Name>identifier_product_doi_authority</Name>
+          <Values>
+            <Value>http://dx.doi.org</Value>
+          </Values>
+        </AdditionalAttribute>
+        <AdditionalAttribute>
+          <Name>AscendingDescendingFlg</Name>
+          <Values>
+            <Value>Ascending</Value>
+          </Values>
+        </AdditionalAttribute>
+      </AdditionalAttributes>
+      <InputGranules>
+        <InputGranule>GW1AM2_201508190926_032A_L1SGRTBR_2210210.h5</InputGranule>
+        <InputGranule>avhrr-only-v2.20150818_preliminary</InputGranule>
+      </InputGranules>
+      <OnlineAccessURLs>
+        <OnlineAccessURL>
+          <URL>https://lance.nsstc.nasa.gov/amsr2-science/data/level2/rainocean/20150819/AMSR_2_L2_RainOcean_R00_201508190926_A.he5</URL>
+          <URLDescription>Online access to AMSR-2 Near-Real-Time LANCE Products (primary)</URLDescription>
+        </OnlineAccessURL>
+        <OnlineAccessURL>
+          <URL>https://lance.itsc.uah.edu/amsr2-science/data/level2/rainocean/20150819/AMSR_2_L2_RainOcean_R00_201508190926_A.he5</URL>
+          <URLDescription>Online access to AMSR-2 Near-Real-Time LANCE Products (backup)</URLDescription>
+        </OnlineAccessURL>
+      </OnlineAccessURLs>
+      <OnlineResources>
+        <OnlineResource>
+          <URL>http://dx.doi.org/10.5067/AMSR2/A2_RainOcn_NRT</URL>
+          <Type>Data Object Identifier</Type>
+        </OnlineResource>
+      </OnlineResources>
+      <Orderable>true</Orderable>
+      <DataFormat>HDF-EOS 5</DataFormat>
+    </Granule>
