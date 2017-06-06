@@ -18,7 +18,7 @@ class TestCMRIntegration(unittest.TestCase):
         pathToCurrentFile = os.path.dirname(__file__)
         os.chdir(os.path.dirname(pathToCurrentFile))  # change OS path to working dir
         os.chdir('..')
-        configFilePath = os.path.abspath(os.curdir) + "/cmr.cfg.example"
+        configFilePath = os.path.abspath(os.curdir) + "/cmr.cfg"
 
 
         cls.cmr = CMR(configFilePath)
@@ -86,13 +86,7 @@ class TestCMRIntegration(unittest.TestCase):
     
          for test_name in [
              'collection_search',
-             'granule_search',
-             'collection_ingest',
-             'granule_ingest',
-             'collection_update',
-             'granule_update',
-             'granule_delete',
-             'collection_delete'
+             'granule_search'
          ]:
              test = getattr(self, test_name)
              test()
