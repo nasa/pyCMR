@@ -14,5 +14,5 @@ notifications:
     on_failure: never
     on_error: never
   slack: ghrcdaac:7kcWm5tYC0eX9TiNGQ3jXQSl
-    on_success: change
+    on_success: always
     on_failure: always
