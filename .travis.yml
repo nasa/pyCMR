@@ -10,5 +10,8 @@ script:
 
 notifications:
   email:
-    on_success: never 
+    on_success: never
     on_failure: never
+  slack: ghrcdaac:7kcWm5tYC0eX9TiNGQ3jXQSl
+    on_success: change
+    on_failure: always
