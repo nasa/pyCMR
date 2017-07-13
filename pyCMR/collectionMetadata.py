@@ -18,9 +18,6 @@ class CollectionCMRXMLTags(GenerateMetadata):
         GenerateMetadata.__init__(self, configFilePath=configFilePath)
 
 
-
-
-
     def getCampaignCMRTags(self, topTag, ds_short_name):
         """
 
@@ -50,8 +47,6 @@ class CollectionCMRXMLTags(GenerateMetadata):
             generatedTag.text = tagValue
 
 
-
-
     def getScienceKeywordsTags(self, toptag, ds_short_name):
 
         data = self.getDataFromDatabase(tableName="science_keyword", ds_short_name=ds_short_name)
@@ -61,19 +56,12 @@ class CollectionCMRXMLTags(GenerateMetadata):
             CategoryKeyword = ET.SubElement(ScienceKeyword, "CategoryKeyword")
             CategoryKeyword.text = 'EARTH SCIENCE'
 
-
             self.discardNoneValues(ScienceKeyword,'TopicKeyword',ele['topic'])
-
             self.discardNoneValues(ScienceKeyword, 'TermKeyword', ele['term'])
-
-
-
 
             VariableLevel1Keyword = ET.SubElement(ScienceKeyword, "VariableLevel1Keyword")
 
             self.discardNoneValues(VariableLevel1Keyword, 'Value', ele['var_level_1'])
-
-
 
             if ele['var_level_2']:
                 VariableLevel2Keyword = ET.SubElement(ScienceKeyword, "VariableLevel2Keyword")
@@ -86,6 +74,7 @@ class CollectionCMRXMLTags(GenerateMetadata):
                 value.text = ele['var_level_3']
 
         return toptag
+
 
     def getPlatformInstrumentCMRtag(self, topTag, ds_short_name):
         """
@@ -122,6 +111,7 @@ class CollectionCMRXMLTags(GenerateMetadata):
 
         return topTag
 
+
     def getPlatformsCMRtag(self, topTag, short_name):
 
         data = self.getDataFromDatabase(tableName="platform", short_name=short_name)
@@ -142,6 +132,7 @@ class CollectionCMRXMLTags(GenerateMetadata):
         Type.text = data['type']
 
         return Platform
+
 
     def getOnlineRessourcesCMRtags(self, topTag, ds_urls):
         """
@@ -167,6 +158,7 @@ class CollectionCMRXMLTags(GenerateMetadata):
 
         return topTag
 
+
     def getCommunData(self, data, listToCompare):
         """
         To get common data with commun keys
@@ -175,14 +167,7 @@ class CollectionCMRXMLTags(GenerateMetadata):
         :return:
         """
         keys = list(set(listToCompare).intersection(data))
-
-
-
-
-
         return {k: data[k] for k in keys}
-
-
 
 
     def generateCollectionXMLToIngest(self, ds_short_name="hs3cpl"):
@@ -208,9 +193,6 @@ class CollectionCMRXMLTags(GenerateMetadata):
         # ====Top level tag =====
         top = ET.Element("Collection")
 
-
-
-
         for ele in topList:
             tagToAdd=ET.SubElement(top, ele)
             if type(data[ele])==bool:
@@ -223,12 +205,6 @@ class CollectionCMRXMLTags(GenerateMetadata):
 
         Price=ET.SubElement(top, "Price")
         Price.text='0.0'
-
-
-
-
-
-
 
         # =============Spatial Keywords tag ========================#
 
@@ -253,13 +229,9 @@ class CollectionCMRXMLTags(GenerateMetadata):
         Temporal = ET.Element("Temporal")
         RangeDateTime = ET.SubElement(Temporal, "RangeDateTime")
 
-
-
         for ele in temporalList:
             newTag=ET.SubElement(RangeDateTime, ele)
             newTag.text=data[ele]
-
-
 
         top.append(Temporal)
 
@@ -298,7 +270,6 @@ class CollectionCMRXMLTags(GenerateMetadata):
         top.append(Contacts)
 
         # =============ScienceKeyword tag ========================#
-
 
         ScienceKeywords = ET.Element("ScienceKeywords")
         ScienceKeywords = self.getScienceKeywordsTags(toptag=ScienceKeywords, ds_short_name=ds_short_name)
@@ -385,9 +356,6 @@ class CollectionCMRXMLTags(GenerateMetadata):
 
         # =============Spatial tag ========================#
 
-
-
-
         Spatial = ET.Element("Spatial")
         SpatialCoverageType = ET.SubElement(Spatial, "SpatialCoverageType")
         SpatialCoverageType.text = 'Horizontal'
@@ -420,15 +388,5 @@ class CollectionCMRXMLTags(GenerateMetadata):
 
 if __name__ == "__main__":
     ghrc = CollectionCMRXMLTags(configFilePath="/home/marouane/PycharmProjects/cmr/cmr.cfg.example")
-    # print ghrc.ingestCollection("/home/marouane/GHRCCatalgue/collection.csv")
-    # print ghrc.deleteFromDatabase(tableName="ds_info", CSVFile="/home/marouane/GHRCCatalgue/delete_ds_info.csv")
-    # print ghrc.getDataExample(tableName='ds_urls', ds_url_type='data_access')
-
     data= ghrc.generateCollectionXMLToIngest(ds_short_name=sys.argv[1])
-
-
     print(data)
-    # print ghrc.getData(tableName="ds_url_descriptions")
-    # print ghrc.getPlatformsCMRtag(short_name='GOES-8')
-    # print ghrc.getRestAPIURL("ds_info")
-

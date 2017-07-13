@@ -35,8 +35,6 @@ class GenerateMetadata():
 
         return self.REST_HOST_URL + "api/v2/" + self.DATABASENAME + "/_table/" + self.SCHEMA + "." + tableName + "?api_key=" + self.WR_API_KEY
 
-  
-
 
     def getDataFromDatabase(self, tableName, **kwargs):
         """
@@ -45,8 +43,6 @@ class GenerateMetadata():
         :param kwargs: Fields in the database with and operation
         :return:
         """
-
-
 
         filter = "&filter="
 
@@ -60,10 +56,6 @@ class GenerateMetadata():
 
         url = self.getRestAPIURL(tableName=tableName)
         url = url + filter
-        # print url + filter + '&limit=' + str(limit)
-
-
-
 
         allresults=[]
 
@@ -77,21 +69,13 @@ class GenerateMetadata():
             data = data.json()
             for ele in data['resource']:
                 allresults.append(ele)
-
-
             try:
                 offset = data['meta']['next']
                 print(offset)
-
             except:
                 condition = False
 
-
-
         return allresults
-
-
-
 
 
     def generateCMRXMLTags(self, top, data):
@@ -116,10 +100,6 @@ class GenerateMetadata():
 
         return topTag
 
-
-
-
-
     def parseBoolean(self, data):
         """
 
@@ -132,19 +112,6 @@ class GenerateMetadata():
         return 'false'
 
 
-
 if __name__ == "__main__":
     ghrc = GenerateMetadata(configFilePath="/home/marouane/PycharmProjects/cmr/cmr.cfg.example")
-    # print ghrc.ingestCollection("/home/marouane/GHRCCatalgue/collection.csv")
-    # print ghrc.deleteFromDatabase(tableName="ds_info", CSVFile="/home/marouane/GHRCCatalgue/delete_ds_info.csv")
-    # print ghrc.getDataExample(tableName='ds_urls', ds_url_type='data_access')
-    # print ghrc.getData(tableName="ds_info", limit=13)
-
     data2=ghrc.getDataFromDatabase(tableName='ds_info',ims_visible='1')
-
-
-
-    # print ghrc.getData(tableName="ds_url_descriptions")
-    # print ghrc.getPlatformsCMRtag(short_name='GOES-8')
-    # print ghrc.getRestAPIURL("ds_info")
-
