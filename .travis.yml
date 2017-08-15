@@ -6,4 +6,11 @@ install:
 script:
 - python setup.py test
 before_install:
-- openssl aes-256-cbc -K $encrypted_421408760930_key -iv $encrypted_421408760930_iv -in pyCMRConfig.cfg.enc -out pyCMRConfig.cfg -d
+- openssl aes-256-cbc -K $encrypted_421408760930_key -iv $encrypted_421408760930_iv
+  -in pyCMRConfig.cfg.enc -out pyCMRConfig.cfg -d
+notifications:
+  slack:
+    rooms:
+      secure: igm5ubvHe6S71R6kouIalY2/XxevKkJnk28IB+eS5bv/gftcoiq8gzoV2/UFiZxLuwX7CZkHpzLF8sBJ5/LxLhtCU0KJH/Je/GNqRepWQXYUbmT5xCplTUzEx0+4OwVVm6D188WGli+oOv+IOKdtBBrPTeWEAXiQ3qhh0xH4oVFeyszA19qS6HewJnC98ZILsRjC8IJDOjOMCS2vlKZWYeoxR8r5DgxPrpeDlboAaKTdSTLVW58Ho0I6jQUO6NDKjbLDwmVvwlg6KF20+0oExvO+mai0PWksH3x4HW7y5U6Ss7islcH+weDzbg6MFIEWqMiOhnLbq2RxAdXGQP3ao+vyJtsZ7OUbfHvfKPNHnRhfzkkR1fKWQcjK4fzn9lAd1hxj8RXkXLqH0h/XwyId1SaAEkx7vENtVwMGdBtbpLm6F8qyhRR7xzenBPvtFCZjrckUbnQJFlp414NjClNXsS4C4XIOHvYnIXdq/YBQ8BFyGrvVE27t2DfKhMCOEOCa/zFK4hTkxJ+0njvhWAz9F/Eqt7kp50D3rW9hs+H+XUBf2V9MroJkno9j6rJ3Ue6M/Q7N5rYkvfKIUjQrgka+Hb47PdzaDazwDMt7xSkgRvBW4OLp53WMFPHAiO3Ifib5CYFg1curCAK60zY5+CFflvZGpBOVwzxA6tlS0yoMlnA=
+    on_success: always
+    on_failure: always 
