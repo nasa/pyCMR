@@ -15,7 +15,7 @@ import errno
 import shutil
 import urllib
 from os import makedirs
-from os.path import dirname, isdir
+from os.path import dirname, exists, isdir
 
 import requests
 
@@ -50,6 +50,8 @@ class Result(dict):
         """
         Download the dataset into file system
         :param destPath: use the current directory as default
+        :param unm: earthexplorer username needed for ftp download
+        :param pwd: earthexplorer password needed for ftp download
         :return:
         """
         url = self._location
@@ -58,17 +60,24 @@ class Result(dict):
             return None
         # make dirs recursively
         destpath = destpath + "/" + url[url.find('allData'):]
+        # make dirs recursively
         mkdir_p(dirname(destpath))
-        if url.startswith('ftp'):
-            if 'nrt' in url:
-                url = url.replace('ftp://', 'ftp://' + unm + ':' + pwd + '@')
-            urlretrieve(url, destpath)
-        else:
-            r = requests.get(url, stream=True)
-            r.raw.decode_content = True
+        # if no file exists
+        if not exists(destpath):
 
-            with open(destpath + "/" + self._downloadname.replace('/', ''), 'wb') as f:
-                shutil.copyfileobj(r.raw, f)
+            if url.startswith('ftp'):
+                # if data is downloaded from the NRT server, need uname/pwd
+                if 'nrt' in url:
+                    url = url.replace('ftp://', 'ftp://' + unm + ':' + pwd + '@')
+                urlretrieve(url, destpath)
+            else:
+                r = requests.get(url, stream=True)
+                r.raw.decode_content = True
+
+                with open(destpath + "/" + self._downloadname.replace('/', ''), 'wb') as f:
+                    shutil.copyfileobj(r.raw, f)
+        else:
+            print('File {} already exists'.format(destpath))
 
     def getDownloadUrl(self):
         """
