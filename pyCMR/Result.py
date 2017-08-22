@@ -49,18 +49,17 @@ class Result(dict):
     def download(self, destpath=".", unm=None, pwd=None):
         """
         Download the dataset into file system
-        :param destPath: use the current directory as default
-        :param unm: earthexplorer username needed for ftp download
-        :param pwd: earthexplorer password needed for ftp download
+        :param destpath: path for downloaded files. Use current directory by default.
+        :param unm: username if needed for ftp download
+        :param pwd: password if needed for ftp download
         :return:
         """
         url = self._location
         # Downloadable url does not exist
         if not url:
             return None
-        # make dirs recursively
+        # make dirs recursively on user destination path as on the remote side
         destpath = destpath + "/" + url[url.find('allData'):]
-        # make dirs recursively
         mkdir_p(dirname(destpath))
         # if no file exists
         if not exists(destpath):

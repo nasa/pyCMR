@@ -507,24 +507,7 @@ search_collection_url = https://%(cmr_host)s/search/collections"""
 
 if __name__ == "__main__":
     cmr = CMR("Path/To/Conf/File")
-    # print metaData.getMetaData(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="hs3cpl", versionId=1)
-    # print cmr.searchCollection(concept_id="C1216373824-GHRC")
-    # print cmr.deleteCollection(dataset_id="GPM GROUND VALIDATION MET ONE RAIN GAUGE PAIRS IFLOODS V2 V2")
-    # print cmr.deleteCollection(dataset_id="GPM Ground Validation NASA EPFL-LTE Parsivel DSD Data Lausanne,
-    # Switzerland V1")
-
-
 
     print(cmr.searchCollection(ShortName='gpmepfl'))
-    # print len(cmr.searchGranule(ShortName='gpmepfl', limit=250))
-    # print cmr.ingestGranule(XMLData=gXMLData)
-    # print cmr.isTokenExpired()
-    # print(cmr.ingestNetCDFFiles(rootDir="/home/marouane/Documents/IPHEX/",ds_short_name="A2_RainOcn_NRNB",
-    # versionId=2))
-    # print cmr.ingestGranuleTextFile(pathToTextFile="/home/marouane/Downloads/dataexample.txt")
-    # print(cmr.ingestGranule(XMLData="/home/marouane/Desktop/GHRCg__gpmrgnaifld2.xml"))
-    # print cmr.ingestCollection("/home/marouane/Desktop/GHRCc_gpmepfl.xml")
 
-
-    # print cmr.ingestGranule("/home/marouane/Documents/xmls/onegranule.xml")
     print(cmr.ingestCollection("/Path/To?XML/File"))
