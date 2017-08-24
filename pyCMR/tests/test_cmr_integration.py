@@ -15,7 +15,7 @@ from ..pyCMR import CMR, Collection, Granule
 class TestCMRIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        configFilePath = "pyCMRConfig.cfg"
+        configFilePath = "cmr.cfg"
 
 
         cls.cmr = CMR(configFilePath)
