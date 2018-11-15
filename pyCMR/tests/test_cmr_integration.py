@@ -15,10 +15,12 @@ from ..pyCMR import CMR, Collection, Granule
 class TestCMRIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        configFilePath = "pyCMRConfig.cfg"
-
-
-        cls.cmr = CMR(configFilePath)
+        try:
+            configFilePath = "pyCMRConfig.cfg"
+            cls.cmr = CMR(configFilePath)
+        except OSError as o_err:  # was not able to open encrypted file, let's try the other one.
+            configFilePath = "cmr.cfg"
+            cls.cmr = CMR(configFilePath)
 
         cls._test_collection_path = os.path.abspath(os.curdir) + "/pyCMR/tests/fixtures/test-collection.xml" #os.path.join(os.curdir, 'tests', 'fixtures', 'test-collection.xml')
         cls._test_granule_path = os.path.abspath(os.curdir) + "/pyCMR/tests/fixtures/test-granule.xml" #os.path.join(os.curdir, 'tests', 'fixtures', 'test-granule.xml')
